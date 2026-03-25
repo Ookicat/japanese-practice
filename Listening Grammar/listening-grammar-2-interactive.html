@@ -1,0 +1,2316 @@
+<!DOCTYPE html>
+<html lang="vi" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listening Grammar 2</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh; padding: 20px; color: #333;
+}
+.container { max-width: 700px; margin: 0 auto; }
+.header { text-align: center; color: #fff; padding: 30px 20px; }
+.header-top { display: flex; justify-content: flex-start; margin-bottom: 12px; }
+.back-index-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.35);
+}
+.back-index-link:hover { background: rgba(255,255,255,0.24); }
+.header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+.header .meta { font-size: 14px; opacity: 0.9; }
+.progress-bar { background: rgba(255,255,255,0.3); border-radius: 10px; height: 8px; margin: 20px 0; overflow: hidden; }
+.progress-fill { background: #fff; height: 100%; width: 0%; transition: width 0.4s ease; border-radius: 10px; }
+.question { background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: none; }
+.question.active { display: block; }
+.q-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px; color: #888; }
+.q-number { font-weight: 600; color: #667eea; }
+.q-text { font-size: 18px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; color: #222; }
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option-wrapper { display: flex; flex-direction: column; }
+.option {
+  display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px;
+  border: 2px solid #e8e8e8; border-radius: 12px; background: #fafafa;
+  cursor: pointer; transition: all 0.2s; text-align: left; font-size: 15px; width: 100%;
+}
+[dir="rtl"] .option { text-align: right; flex-direction: row-reverse; }
+.option:hover:not(.disabled) { border-color: #667eea; background: #f5f3ff; }
+.option.selected { border-color: #667eea; background: #ede9fe; }
+.option.correct { border-color: #22c55e; background: #dcfce7; }
+.option.incorrect { border-color: #ef4444; background: #fee2e2; }
+.option.disabled { cursor: default; }
+.option.show-correct { border-color: #22c55e; background: #dcfce7; }
+.opt-label {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%; background: #e8e8e8;
+  font-weight: 700; font-size: 14px; flex-shrink: 0;
+}
+.option.selected .opt-label { background: #667eea; color: #fff; }
+.option.correct .opt-label { background: #22c55e; color: #fff; }
+.option.incorrect .opt-label { background: #ef4444; color: #fff; }
+.option.show-correct .opt-label { background: #22c55e; color: #fff; }
+.opt-text { padding-top: 5px; line-height: 1.5; }
+
+/* Individual option feedback */
+.option-feedback {
+  margin: 8px 0 4px 46px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+[dir="rtl"] .option-feedback { margin-left: 0; margin-right: 46px; }
+.option-feedback.correct-feedback {
+  background: #dcfce7;
+  border-left: 3px solid #22c55e;
+}
+.option-feedback.incorrect-feedback {
+  background: #fef3f2;
+  border-left: 3px solid #fca5a5;
+}
+[dir="rtl"] .option-feedback.correct-feedback,
+[dir="rtl"] .option-feedback.incorrect-feedback {
+  border-left: none;
+  border-right: 3px solid;
+}
+[dir="rtl"] .option-feedback.correct-feedback { border-right-color: #22c55e; }
+[dir="rtl"] .option-feedback.incorrect-feedback { border-right-color: #fca5a5; }
+.feedback-status {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.feedback-status.correct { color: #166534; }
+.feedback-status.incorrect { color: #991b1b; }
+.feedback-rationale { color: #444; }
+
+/* Hint box */
+.hint-box {
+  margin: 12px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+}
+.hint-toggle {
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hint-toggle:hover { background: #fef3c7; }
+.hint-content {
+  padding: 0 16px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s, padding 0.3s;
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.5;
+}
+.hint-box.show .hint-content {
+  padding: 0 16px 12px;
+  max-height: 200px;
+}
+
+.question-nav {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+.prev-btn,
+.next-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.prev-btn {
+  background: #e5e7eb;
+  color: #374151;
+}
+.prev-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(17,24,39,0.12); }
+.next-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none;
+}
+.next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
+.hidden { display: none !important; }
+.results { background: #fff; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: none; }
+.results.active { display: block; }
+.results h2 { font-size: 28px; margin-bottom: 10px; color: #333; }
+.results .score { font-size: 64px; font-weight: 700; color: #667eea; margin: 20px 0; }
+.results .score-text { font-size: 18px; color: #666; margin-bottom: 30px; }
+.restart-btn {
+  padding: 14px 40px; background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;
+}
+
+/* Math CSS */
+.math, .math-block { font-family: "Cambria Math", "Times New Roman", Times, serif; font-style: italic; }
+.math-block { display: block; text-align: center; margin: 10px 0; font-size: 110%; }
+.frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 3px; font-size: 0.9em; }
+.frac-num { border-bottom: 1px solid currentColor; padding: 0 4px 2px; line-height: 1.2; }
+.frac-den { padding: 2px 4px 0; line-height: 1.2; }
+.sqrt { white-space: nowrap; }
+.sqrt-content { border-top: 1px solid currentColor; padding: 0 3px; margin-left: 2px; }
+sup, sub { font-size: 0.75em; }
+sup { vertical-align: super; }
+sub { vertical-align: sub; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-top">
+      <a class="back-index-link" href="../index.html">← Quay lại trang chủ</a>
+    </div>
+    <h1>Listening Grammar 2</h1>
+    <div class="meta">30 câu hỏi</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+  <div id="quiz-container">
+        <div class="question" data-index="0">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 1</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">就職活動のための交流会は、駅前の広場（　　）行われます。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cần một trợ từ mang sắc thái trang trọng dùng để chỉ địa điểm, tình huống diễn ra sự kiện.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="'N + に沿って' có nghĩa là 'men theo / tuân theo' (ví dụ: tuân theo kế hoạch, men theo con đường), không dùng để chỉ địa điểm tổ chức sự kiện.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">に沿って</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'N + に沿って' có nghĩa là 'men theo / tuân theo' (ví dụ: tuân theo kế hoạch, men theo con đường), không dùng để chỉ địa điểm tổ chức sự kiện.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'N + にとって' mang nghĩa 'đối với (lập trường của ai đó)', không dùng để chỉ nơi chốn.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">にとって</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'N + にとって' mang nghĩa 'đối với (lập trường của ai đó)', không dùng để chỉ nơi chốn.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'から～にかけて' nghĩa là 'từ... đến...', chỉ một khoảng thời gian hoặc không gian, không dùng đơn độc với một danh từ địa điểm.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">にかけて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'から～にかけて' nghĩa là 'từ... đến...', chỉ một khoảng thời gian hoặc không gian, không dùng đơn độc với một danh từ địa điểm.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Cấu trúc 'N + において' là cách nói trang trọng của trợ từ 'で', dùng để chỉ địa điểm, tình huống diễn ra sự kiện. Câu này có nghĩa: &quot;Buổi giao lưu dành cho hoạt động tìm việc sẽ được tổ chức tại quảng trường trước nhà ga.&quot;">
+            <span class="opt-label">D</span>
+            <span class="opt-text">において</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + において' là cách nói trang trọng của trợ từ 'で', dùng để chỉ địa điểm, tình huống diễn ra sự kiện. Câu này có nghĩa: &quot;Buổi giao lưu dành cho hoạt động tìm việc sẽ được tổ chức tại quảng trường trước nhà ga.&quot;</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="1">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 2</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">気象庁の発表によると、明日は関東地方（　　）東北地方（　　）、大雨が続く見込みです。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc diễn tả một khoảng không gian (hoặc thời gian) có ranh giới không quá rõ ràng, thường dùng trong dự báo thời tiết.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'N1 から N2 にかけて' mang nghĩa 'từ... đến...' diễn tả một khoảng không gian (hoặc thời gian) có ranh giới không quá rõ ràng, thường dùng trong dự báo thời tiết. Dịch: &quot;Theo thông báo của Cục khí tượng, ngày mai dự kiến sẽ có mưa to kéo dài từ khu vực Kanto đến khu vực Tohoku.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">から／にかけて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N1 から N2 にかけて' mang nghĩa 'từ... đến...' diễn tả một khoảng không gian (hoặc thời gian) có ranh giới không quá rõ ràng, thường dùng trong dự báo thời tiết. Dịch: &quot;Theo thông báo của Cục khí tượng, ngày mai dự kiến sẽ có mưa to kéo dài từ khu vực Kanto đến khu vực Tohoku.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'において' chỉ địa điểm/tình huống tại một điểm cụ thể, không dùng theo cặp để chỉ một phạm vi trải dài.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">において／における</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'において' chỉ địa điểm/tình huống tại một điểm cụ thể, không dùng theo cặp để chỉ một phạm vi trải dài.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'にとって' nghĩa là 'đối với...', hoàn toàn sai về mặt ý nghĩa và cấu trúc.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">にとって／のこと</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'にとって' nghĩa là 'đối với...', hoàn toàn sai về mặt ý nghĩa và cấu trúc.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="Cấu trúc '～ば～ほど' mang nghĩa 'càng... càng...', không dùng để ghép với các danh từ chỉ địa danh.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">ば／ほど</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc '～ば～ほど' mang nghĩa 'càng... càng...', không dùng để ghép với các danh từ chỉ địa danh.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="2">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 3</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">明日は全国的に青空が広がり、気持ちのいい行楽日和になる（　　）。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang ý nghĩa phỏng đoán 'có lẽ là / chắc là' rất phổ biến trong dự báo thời tiết.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="'～はずがない' nghĩa là 'tuyệt đối không thể xảy ra', mang tính chủ quan của người nói, không dùng cho thông báo mang tính khách quan của dự báo thời tiết.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">はずがない</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～はずがない' nghĩa là 'tuyệt đối không thể xảy ra', mang tính chủ quan của người nói, không dùng cho thông báo mang tính khách quan của dự báo thời tiết.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cấu trúc '～でしょう' mang ý nghĩa phỏng đoán 'có lẽ là / chắc là'. Câu này rất phổ biến trong dự báo thời tiết: &quot;Ngày mai bầu trời xanh sẽ trải rộng trên toàn quốc, có lẽ sẽ là một ngày thời tiết đẹp rất thích hợp để đi chơi.&quot;">
+            <span class="opt-label">B</span>
+            <span class="opt-text">でしょう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc '～でしょう' mang ý nghĩa phỏng đoán 'có lẽ là / chắc là'. Câu này rất phổ biến trong dự báo thời tiết: &quot;Ngày mai bầu trời xanh sẽ trải rộng trên toàn quốc, có lẽ sẽ là một ngày thời tiết đẹp rất thích hợp để đi chơi.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'～こともある' nghĩa là 'thỉnh thoảng cũng có lúc', không dùng để đưa ra lời dự báo chắc chắn cho ngày mai.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">こともある</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～こともある' nghĩa là 'thỉnh thoảng cũng có lúc', không dùng để đưa ra lời dự báo chắc chắn cho ngày mai.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'～なんて' dùng để bộc lộ cảm xúc ngạc nhiên, chê bai, hoàn toàn không phù hợp với văn phong bản tin thời tiết.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">なんて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～なんて' dùng để bộc lộ cảm xúc ngạc nhiên, chê bai, hoàn toàn không phù hợp với văn phong bản tin thời tiết.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="3">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 4</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">地域の交流会（　　）、外国の文化に興味を持つようになりました。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc diễn đạt 'nhờ đâu / từ cơ duyên nào mà...' bắt đầu một sở thích hay sự quan tâm.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="'N + に限り' mang nghĩa 'chỉ giới hạn dành cho...', không dùng để chỉ lý do bắt đầu một sở thích hay sự quan tâm.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">に限り</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'N + に限り' mang nghĩa 'chỉ giới hạn dành cho...', không dùng để chỉ lý do bắt đầu một sở thích hay sự quan tâm.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="Mặc dù '～ことで' cũng có thể chỉ phương pháp, nhưng khi nói về &quot;nguồn cơn/cơ duyên&quot; để bắt đầu sự việc, 'がきっかけで' mới là ngữ pháp chuẩn xác nhất.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ことで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Mặc dù '～ことで' cũng có thể chỉ phương pháp, nhưng khi nói về &quot;nguồn cơn/cơ duyên&quot; để bắt đầu sự việc, 'がきっかけで' mới là ngữ pháp chuẩn xác nhất.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Cấu trúc 'N + がきっかけで' mang nghĩa 'nhờ đâu / từ cơ duyên nào mà...'. Dịch: &quot;Nhờ (duyên cớ) buổi giao lưu của khu vực mà tôi đã bắt đầu có hứng thú với văn hóa nước ngoài.&quot;">
+            <span class="opt-label">C</span>
+            <span class="opt-text">がきっかけで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + がきっかけで' mang nghĩa 'nhờ đâu / từ cơ duyên nào mà...'. Dịch: &quot;Nhờ (duyên cớ) buổi giao lưu của khu vực mà tôi đã bắt đầu có hứng thú với văn hóa nước ngoài.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'N + において' mang nghĩa 'tại / ở' (địa điểm), không đóng vai trò chỉ lý do hay cơ duyên.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">において</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'N + において' mang nghĩa 'tại / ở' (địa điểm), không đóng vai trò chỉ lý do hay cơ duyên.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="4">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 5</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">この機械の操作はとても簡単なので、初心者（　　）すぐに覚えられます。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc dùng để đưa ra một ví dụ cực đoan (ngay cả...).</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'N + でも' dùng để đưa ra một ví dụ cực đoan (ngay cả...). Câu này mang nghĩa: &quot;Vì thao tác của loại máy móc này rất đơn giản nên ngay cả người mới bắt đầu (初心者) cũng có thể nhớ được ngay.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">でも</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + でも' dùng để đưa ra một ví dụ cực đoan (ngay cả...). Câu này mang nghĩa: &quot;Vì thao tác của loại máy móc này rất đơn giản nên ngay cả người mới bắt đầu (初心者) cũng có thể nhớ được ngay.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="Nghĩa là 'chỉ giới hạn cho người mới bắt đầu'. Câu này sai logic vì máy dễ sử dụng thì ai cũng dùng được chứ không phải &quot;chỉ&quot; người mới dùng được.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">に限り</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Nghĩa là 'chỉ giới hạn cho người mới bắt đầu'. Câu này sai logic vì máy dễ sử dụng thì ai cũng dùng được chứ không phải &quot;chỉ&quot; người mới dùng được.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'N + ににとって' mang nghĩa 'đối với (đánh giá từ lập trường ai đó)'. Nếu dùng ngữ pháp này, vế sau phải là tính từ đánh giá (vd: dễ, khó), không thể đi trực tiếp với động từ khả năng '覚えられます'.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">にとって</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'N + ににとって' mang nghĩa 'đối với (đánh giá từ lập trường ai đó)'. Nếu dùng ngữ pháp này, vế sau phải là tính từ đánh giá (vd: dễ, khó), không thể đi trực tiếp với động từ khả năng '覚えられます'.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'にかかわらず' mang nghĩa 'bất kể'. Nếu dùng ở đây, danh từ phía trước phải là một từ chỉ sự bao quát, không thể dùng với danh từ chỉ đối tượng cụ thể &quot;người mới bắt đầu&quot; theo cách này.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">にかかわらず</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'にかかわらず' mang nghĩa 'bất kể'. Nếu dùng ở đây, danh từ phía trước phải là một từ chỉ sự bao quát, không thể dùng với danh từ chỉ đối tượng cụ thể &quot;người mới bắt đầu&quot; theo cách này.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="5">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 6</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">このサイトは、パスワードを正しく入力しないと、次のページに進めない（　　）。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc diễn tả một cơ chế, hệ thống máy móc hoặc quy định đã được thiết lập sẵn.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="'～はずがない' nghĩa là 'tuyệt đối không thể / làm gì có chuyện...', đi ngược lại hoàn toàn với việc mô tả hệ thống bảo mật của trang web.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">はずがありません</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～はずがない' nghĩa là 'tuyệt đối không thể / làm gì có chuyện...', đi ngược lại hoàn toàn với việc mô tả hệ thống bảo mật của trang web.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cấu trúc 'V-る/V-ない + ようになっている' diễn tả một cơ chế, hệ thống máy móc hoặc quy định đã được thiết lập sẵn 'được thiết kế để...'. Dịch: &quot;Trang web này được thiết kế để không thể tiến sang trang tiếp theo nếu không nhập đúng mật khẩu.&quot;">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ようになっています</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'V-る/V-ない + ようになっている' diễn tả một cơ chế, hệ thống máy móc hoặc quy định đã được thiết lập sẵn 'được thiết kế để...'. Dịch: &quot;Trang web này được thiết kế để không thể tiến sang trang tiếp theo nếu không nhập đúng mật khẩu.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Ngữ pháp này thường dùng để chỉ một quy tắc, nội quy chung chung mang tính ép buộc con người, không diễn tả cơ chế tự động của hệ thống phần mềm/website.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ことになっています</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Ngữ pháp này thường dùng để chỉ một quy tắc, nội quy chung chung mang tính ép buộc con người, không diễn tả cơ chế tự động của hệ thống phần mềm/website.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="Tương tự 'はずがない', mang ý nghĩa 'không lý nào lại...', không dùng để mô tả tính năng của website.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">わけがありません</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Tương tự 'はずがない', mang ý nghĩa 'không lý nào lại...', không dùng để mô tả tính năng của website.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="6">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 7</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">当店では、学生証を持参されたお客様（　　）、すべての商品を半額で販売いたします。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'chỉ giới hạn dành cho...', hay gặp trên tờ rơi, thông báo ưu đãi.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'N + に限り' mang nghĩa 'chỉ giới hạn dành cho...'. Ngữ pháp này rất hay gặp trên tờ rơi, thông báo ưu đãi: &quot;Tại quán chúng tôi, chỉ giới hạn cho những khách hàng có mang theo thẻ học sinh mới được mua mọi sản phẩm với giá giảm một nửa.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">に限り</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + に限り' mang nghĩa 'chỉ giới hạn dành cho...'. Ngữ pháp này rất hay gặp trên tờ rơi, thông báo ưu đãi: &quot;Tại quán chúng tôi, chỉ giới hạn cho những khách hàng có mang theo thẻ học sinh mới được mua mọi sản phẩm với giá giảm một nửa.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'において' chỉ địa điểm, bối cảnh diễn ra hành động. Không dùng để khoanh vùng đối tượng khách hàng nhận ưu đãi.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">において</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'において' chỉ địa điểm, bối cảnh diễn ra hành động. Không dùng để khoanh vùng đối tượng khách hàng nhận ưu đãi.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'にかかわらず' là 'bất kể'. Nếu &quot;bất kể khách hàng nào&quot; thì việc nhấn mạnh &quot;mang theo thẻ học sinh&quot; trở nên vô nghĩa, sai tính logic của thông báo khuyến mãi.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">にかかわらず</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'にかかわらず' là 'bất kể'. Nếu &quot;bất kể khách hàng nào&quot; thì việc nhấn mạnh &quot;mang theo thẻ học sinh&quot; trở nên vô nghĩa, sai tính logic của thông báo khuyến mãi.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'に沿って' có nghĩa 'men theo / tuân theo' (ví dụ: tuân theo kế hoạch). Hoàn toàn sai ngữ nghĩa.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">に沿って</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'に沿って' có nghĩa 'men theo / tuân theo' (ví dụ: tuân theo kế hoạch). Hoàn toàn sai ngữ nghĩa.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="7">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 8</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">こんなに安い値段で、これほど素晴らしい商品が手に入る（　　）、信じられない。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc dùng để bộc lộ sự kinh ngạc, không ngờ tới trước một sự việc.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="'V-masu + 次第' là 'ngay sau khi...', hoàn toàn sai cả về cấu trúc động từ (thể từ điển - 手に入る) và ý nghĩa của câu.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">次第</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'V-masu + 次第' là 'ngay sau khi...', hoàn toàn sai cả về cấu trúc động từ (thể từ điển - 手に入る) và ý nghĩa của câu.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'～でしょう' là phỏng đoán 'có lẽ'. Vế sau đã khẳng định '信じられない' (không thể tin được) thì vế trước không thể là một sự phỏng đoán.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">でしょう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～でしょう' là phỏng đoán 'có lẽ'. Vế sau đã khẳng định '信じられない' (không thể tin được) thì vế trước không thể là một sự phỏng đoán.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'～ことで' dùng để chỉ phương pháp hoặc nguyên nhân (bằng cách... / thông qua...), không dùng để cảm thán, ngạc nhiên.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ことで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～ことで' dùng để chỉ phương pháp hoặc nguyên nhân (bằng cách... / thông qua...), không dùng để cảm thán, ngạc nhiên.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Cấu trúc '～なんて' dùng để bộc lộ sự kinh ngạc, không ngờ tới trước một sự việc. Cả câu: &quot;Cái việc có thể mua được sản phẩm tuyệt vời đến thế này với mức giá rẻ như vậy, thật không thể tin được.&quot;">
+            <span class="opt-label">D</span>
+            <span class="opt-text">なんて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc '～なんて' dùng để bộc lộ sự kinh ngạc, không ngờ tới trước một sự việc. Cả câu: &quot;Cái việc có thể mua được sản phẩm tuyệt vời đến thế này với mức giá rẻ như vậy, thật không thể tin được.&quot;</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="8">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 9</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">普段は健康のために自分で料理を作りますが、疲れた時はお弁当を買う（　　）。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'thỉnh thoảng cũng có lúc làm gì đó'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'V-る + こともある' mang nghĩa 'thỉnh thoảng cũng có lúc làm gì đó'. Phù hợp hoàn hảo với ngữ cảnh: &quot;Bình thường tôi tự nấu ăn vì sức khỏe, nhưng những lúc mệt mỏi thì thỉnh thoảng cũng có lúc tôi mua cơm hộp.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">こともある</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'V-る + こともある' mang nghĩa 'thỉnh thoảng cũng có lúc làm gì đó'. Phù hợp hoàn hảo với ngữ cảnh: &quot;Bình thường tôi tự nấu ăn vì sức khỏe, nhưng những lúc mệt mỏi thì thỉnh thoảng cũng có lúc tôi mua cơm hộp.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'～はずがない' là phủ định mạnh mẽ 'chắc chắn không thể', không phù hợp để nói về một hành động thỉnh thoảng xảy ra nhằm giải quyết sự mệt mỏi.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">はずがありません</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～はずがない' là phủ định mạnh mẽ 'chắc chắn không thể', không phù hợp để nói về một hành động thỉnh thoảng xảy ra nhằm giải quyết sự mệt mỏi.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Ngữ pháp này dùng để chỉ cơ chế hoạt động của máy móc/hệ thống, không dùng để nói về thói quen sinh hoạt của bản thân.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ようになっています</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Ngữ pháp này dùng để chỉ cơ chế hoạt động của máy móc/hệ thống, không dùng để nói về thói quen sinh hoạt của bản thân.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="Ngữ pháp 'N + に限り' không dùng để phủ định hành động cá nhân theo cách này.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">に限りません</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Ngữ pháp 'N + に限り' không dùng để phủ định hành động cá nhân theo cách này.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="9">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 10</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">本は、読め（　　）読む（　　）、新しい知識が増えて面白いです。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc biểu thị sự tương quan đồng tiến (càng... càng...).</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc '（～ば）～ほど' mang nghĩa 'càng... càng...'. Biểu thị sự tương quan đồng tiến. Dịch: &quot;Sách thì càng đọc sẽ càng tăng thêm kiến thức mới và càng thấy thú vị.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">ば／ほど</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc '（～ば）～ほど' mang nghĩa 'càng... càng...'. Biểu thị sự tương quan đồng tiến. Dịch: &quot;Sách thì càng đọc sẽ càng tăng thêm kiến thức mới và càng thấy thú vị.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="Không có cấu trúc '～と～だけ' để chỉ mức độ tăng tiến tương đồng trong tiếng Nhật.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">と／だけ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Không có cấu trúc '～と～だけ' để chỉ mức độ tăng tiến tương đồng trong tiếng Nhật.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Sai hoàn toàn về mặt ghép cặp ngữ pháp. 'たら' là điều kiện (nếu/sau khi), 'まで' là giới hạn (đến khi).">
+            <span class="opt-label">C</span>
+            <span class="opt-text">たら／まで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Sai hoàn toàn về mặt ghép cặp ngữ pháp. 'たら' là điều kiện (nếu/sau khi), 'まで' là giới hạn (đến khi).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'ても' (cho dù) không thể kết hợp với 'くらい' (đến mức) để chỉ sự tăng tiến &quot;càng... càng...&quot;.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">ても／くらい</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'ても' (cho dù) không thể kết hợp với 'くらい' (đến mức) để chỉ sự tăng tiến &quot;càng... càng...&quot;.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="10">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 11</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">毎朝、少しの時間を運動に使う（　　）、ストレスを解消できる。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'bằng cách / thông qua việc...' dùng để chỉ phương pháp.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'V-る + ことで' mang nghĩa 'bằng cách / thông qua việc...'. Dùng để chỉ phương pháp hoặc phương tiện để đạt được kết quả phía sau. Dịch: &quot;Thông qua việc dành một chút thời gian mỗi sáng để vận động, ta có thể giải tỏa được căng thẳng (ストレスを解消できる).&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">ことで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'V-る + ことで' mang nghĩa 'bằng cách / thông qua việc...'. Dùng để chỉ phương pháp hoặc phương tiện để đạt được kết quả phía sau. Dịch: &quot;Thông qua việc dành một chút thời gian mỗi sáng để vận động, ta có thể giải tỏa được căng thẳng (ストレスを解消できる).&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'～ことだし' mang nghĩa 'vì... nên...', dùng để đưa ra hoàn cảnh/lý do làm cơ sở cho quyết định, không dùng để chỉ phương pháp.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ことだし</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～ことだし' mang nghĩa 'vì... nên...', dùng để đưa ra hoàn cảnh/lý do làm cơ sở cho quyết định, không dùng để chỉ phương pháp.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Cấu trúc này thường đi với thể phủ định 'ないことには' nghĩa là 'nếu không... thì không thể', không kết hợp với động từ khẳng định ở đây.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ことには</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc này thường đi với thể phủ định 'ないことには' nghĩa là 'nếu không... thì không thể', không kết hợp với động từ khẳng định ở đây.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'～こと' đứng cuối câu mang ý nghĩa mệnh lệnh, quy định, không tạo thành cấu trúc chỉ phương pháp.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">こと</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～こと' đứng cuối câu mang ý nghĩa mệnh lệnh, quy định, không tạo thành cấu trúc chỉ phương pháp.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="11">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 12</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">現代の若者（　　）、スマートフォンは生活に欠かせない情報手段である。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'đối với (lập trường của ai đó)...'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="'N + に沿って' có nghĩa là 'men theo / tuân theo' (ví dụ: tuân theo kế hoạch), không đi với đối tượng người để đưa ra đánh giá.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">に沿って</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'N + に沿って' có nghĩa là 'men theo / tuân theo' (ví dụ: tuân theo kế hoạch), không đi với đối tượng người để đưa ra đánh giá.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'N + において' mang nghĩa 'tại / ở' (địa điểm, thời đại), không dùng để đưa ra đánh giá từ góc nhìn của ai đó.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">において</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'N + において' mang nghĩa 'tại / ở' (địa điểm, thời đại), không dùng để đưa ra đánh giá từ góc nhìn của ai đó.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Cấu trúc 'N + にとって' mang nghĩa 'đối với (lập trường của ai đó)...'. Dịch: &quot;Đối với giới trẻ hiện đại (現代の若者), điện thoại thông minh là một phương tiện thông tin không thể thiếu trong cuộc sống.&quot;">
+            <span class="opt-label">C</span>
+            <span class="opt-text">にとって</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + にとって' mang nghĩa 'đối với (lập trường của ai đó)...'. Dịch: &quot;Đối với giới trẻ hiện đại (現代の若者), điện thoại thông minh là một phương tiện thông tin không thể thiếu trong cuộc sống.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'～から～にかけて' nghĩa là 'từ... đến...', chỉ phạm vi không gian hoặc thời gian, hoàn toàn sai cấu trúc.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">にかけて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～から～にかけて' nghĩa là 'từ... đến...', chỉ phạm vi không gian hoặc thời gian, hoàn toàn sai cấu trúc.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="12">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 13</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">この新しいソフトウェアは、実際に使って（　　）、本当に役に立つかどうかわからない。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'nếu không làm... thì không thể biết/không thể làm...'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="Động từ đứng trước 'ことには' trong ngữ pháp này bắt buộc phải chia ở thể phủ định (V-ない), không được dùng thể quá khứ (V-た) hay (V-た/てみた).">
+            <span class="opt-label">A</span>
+            <span class="opt-text">みたことには</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Động từ đứng trước 'ことには' trong ngữ pháp này bắt buộc phải chia ở thể phủ định (V-ない), không được dùng thể quá khứ (V-た) hay (V-た/てみた).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cấu trúc 'V-ないことには～ない' mang nghĩa 'nếu không làm... thì không thể biết/không thể làm...'. Dịch: &quot;Phần mềm mới này nếu không thực tế dùng thử thì sẽ không biết được liệu nó có thực sự hữu ích hay không.&quot;">
+            <span class="opt-label">B</span>
+            <span class="opt-text">みないことには</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'V-ないことには～ない' mang nghĩa 'nếu không làm... thì không thể biết/không thể làm...'. Dịch: &quot;Phần mềm mới này nếu không thực tế dùng thử thì sẽ không biết được liệu nó có thực sự hữu ích hay không.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Dù 'ことで' chỉ phương pháp (bằng cách dùng thử...), nhưng nó không tạo ra cấu trúc câu mang ý nghĩa điều kiện 'nếu không... thì không...'.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">みることで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Dù 'ことで' chỉ phương pháp (bằng cách dùng thử...), nhưng nó không tạo ra cấu trúc câu mang ý nghĩa điều kiện 'nếu không... thì không...'.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'ないことで' mang nghĩa 'bằng cách không làm...', đi ngược lại hoàn toàn với logic của câu.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">みないことで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'ないことで' mang nghĩa 'bằng cách không làm...', đi ngược lại hoàn toàn với logic của câu.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="13">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 14</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">市民公民館の料理講座は、年齢や性別（　　）、だれでも申し込むことができます。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'bất kể / không liên quan đến'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'N + にかかわらず' mang nghĩa 'bất kể / không liên quan đến'. Dịch: &quot;Khóa học nấu ăn của nhà văn hóa tự quản thì bất kể độ tuổi hay giới tính (年齢や性別), ai cũng có thể đăng ký (申し込む).&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">にかかわらず</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + にかかわらず' mang nghĩa 'bất kể / không liên quan đến'. Dịch: &quot;Khóa học nấu ăn của nhà văn hóa tự quản thì bất kể độ tuổi hay giới tính (年齢や性別), ai cũng có thể đăng ký (申し込む).&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="Nghĩa là 'tuân theo'. Khóa học không thể &quot;tuân theo tuổi tác và giới tính&quot; để cho mọi người đăng ký được.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">に沿って</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Nghĩa là 'tuân theo'. Khóa học không thể &quot;tuân theo tuổi tác và giới tính&quot; để cho mọi người đăng ký được.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Nghĩa là 'chỉ giới hạn dành cho...' Nếu dùng từ này thì sẽ mâu thuẫn với vế sau &quot;ai cũng có thể đăng ký&quot;.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">に限り</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Nghĩa là 'chỉ giới hạn dành cho...' Nếu dùng từ này thì sẽ mâu thuẫn với vế sau &quot;ai cũng có thể đăng ký&quot;.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'～とかで' mang nghĩa 'nghe nói là vì...', không thể đứng sau danh từ 'độ tuổi và giới tính' để nối với vế câu chỉ điều kiện tham gia.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">とかで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～とかで' mang nghĩa 'nghe nói là vì...', không thể đứng sau danh từ 'độ tuổi và giới tính' để nối với vế câu chỉ điều kiện tham gia.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="14">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 15</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">明日の会議の準備は、部長が決めた計画（　　）進めてください。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'theo đúng như / hệt như...'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="Khi ghép trực tiếp với danh từ mà không có trợ từ 'の', ta phải biến âm thành 'どおりに'. Nếu muốn dùng 'とおりに', phải là '計画のとおりに'.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">とおりに</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Khi ghép trực tiếp với danh từ mà không có trợ từ 'の', ta phải biến âm thành 'どおりに'. Nếu muốn dùng 'とおりに', phải là '計画のとおりに'.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cấu trúc 'N + どおりに' mang nghĩa 'theo đúng như / hệt như...'. Dịch: &quot;Việc chuẩn bị cho cuộc họp ngày mai, hãy tiến hành theo đúng kế hoạch (計画) mà trưởng phòng đã quyết định.&quot;">
+            <span class="opt-label">B</span>
+            <span class="opt-text">どおりに</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + どおりに' mang nghĩa 'theo đúng như / hệt như...'. Dịch: &quot;Việc chuẩn bị cho cuộc họp ngày mai, hãy tiến hành theo đúng kế hoạch (計画) mà trưởng phòng đã quyết định.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Mặc dù 'ように' cũng mang nghĩa 'như là', nhưng với các danh từ mang tính khuôn mẫu, chuẩn mực rõ ràng (kế hoạch, chỉ thị), 'どおりに' được sử dụng để nhấn mạnh sự tuân thủ chính xác.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ように</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Mặc dù 'ように' cũng mang nghĩa 'như là', nhưng với các danh từ mang tính khuôn mẫu, chuẩn mực rõ ràng (kế hoạch, chỉ thị), 'どおりに' được sử dụng để nhấn mạnh sự tuân thủ chính xác.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'次第に' là phó từ mang nghĩa 'dần dần', hoàn toàn sai về mặt ý nghĩa.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">次第に</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'次第に' là phó từ mang nghĩa 'dần dần', hoàn toàn sai về mặt ý nghĩa.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="15">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 16</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">今日は、大雪による停電（　　）、午後の授業はすべて休講になるそうだ。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc dùng để nêu lý do một cách không chắc chắn qua lời thông báo hoặc nghe kể.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="'はずだ' dùng để khẳng định chắc chắn một sự việc dựa trên logic. Không dùng khi muốn truyền đạt lại thông tin nghe kể/lời đồn.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">はずで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'はずだ' dùng để khẳng định chắc chắn một sự việc dựa trên logic. Không dùng khi muốn truyền đạt lại thông tin nghe kể/lời đồn.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cấu trúc '～とかで' mang nghĩa 'nghe nói là vì... / hình như là do...'. Dùng để nêu lý do một cách không chắc chắn qua lời thông báo hoặc nghe kể. Dịch: &quot;Nghe nói là vì mất điện (停電) do tuyết lớn nên toàn bộ giờ học buổi chiều sẽ được nghỉ.&quot;">
+            <span class="opt-label">B</span>
+            <span class="opt-text">とかで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc '～とかで' mang nghĩa 'nghe nói là vì... / hình như là do...'. Dùng để nêu lý do một cách không chắc chắn qua lời thông báo hoặc nghe kể. Dịch: &quot;Nghe nói là vì mất điện (停電) do tuyết lớn nên toàn bộ giờ học buổi chiều sẽ được nghỉ.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'ところで' (ngay khi / nhân tiện) không dùng để chỉ lý do, nguyên nhân.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ところで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'ところで' (ngay khi / nhân tiện) không dùng để chỉ lý do, nguyên nhân.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'～上で' mang nghĩa 'sau khi... thì mới...', hoàn toàn không phù hợp để chỉ lý do dẫn đến kết quả ở đây.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">上で</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～上で' mang nghĩa 'sau khi... thì mới...', hoàn toàn không phù hợp để chỉ lý do dẫn đến kết quả ở đây.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="16">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 17</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">【スポーツセンターの掲示板】 使ったトレーニング器具は、必ず元の場所に片付ける（　　）。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc dùng cuối câu để biểu đạt mệnh lệnh, quy định trên bảng thông báo, nội quy.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="'はず' dùng để phỏng đoán chắc chắn (chắc chắn là...), không dùng để đưa ra quy định hay nội quy trên bảng thông báo.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">はず</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'はず' dùng để phỏng đoán chắc chắn (chắc chắn là...), không dùng để đưa ra quy định hay nội quy trên bảng thông báo.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'わけ' thường dùng để giải thích lý do, nguồn cơn sự việc, không dùng làm từ mệnh lệnh hay quy định.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">わけ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'わけ' thường dùng để giải thích lý do, nguồn cơn sự việc, không dùng làm từ mệnh lệnh hay quy định.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Cấu trúc 'V-る/V-ない + こと' dùng cuối câu để biểu đạt mệnh lệnh, quy định. Nó thường xuất hiện trên các bảng thông báo, nội quy. Dịch: &quot;[Bảng thông báo trung tâm thể thao] Các dụng cụ tập luyện sau khi sử dụng xong bắt buộc phải được dọn dẹp trả về chỗ cũ.&quot;">
+            <span class="opt-label">C</span>
+            <span class="opt-text">こと</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'V-る/V-ない + こと' dùng cuối câu để biểu đạt mệnh lệnh, quy định. Nó thường xuất hiện trên các bảng thông báo, nội quy. Dịch: &quot;[Bảng thông báo trung tâm thể thao] Các dụng cụ tập luyện sau khi sử dụng xong bắt buộc phải được dọn dẹp trả về chỗ cũ.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'べき' là lời khuyên 'nên làm gì', không mang tính chất mệnh lệnh, quy chế bắt buộc nghiêm ngặt viết trên văn bản thông báo như cấu trúc 'こと'.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">べき</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'べき' là lời khuyên 'nên làm gì', không mang tính chất mệnh lệnh, quy chế bắt buộc nghiêm ngặt viết trên văn bản thông báo như cấu trúc 'こと'.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="17">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 18</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">災害時（　　）地域の協力は、被害を減らすために非常に重要だ。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc bổ nghĩa trực tiếp cho danh từ phía sau, diễn tả bối cảnh, thời điểm.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'N1 + における + N2' (tại, ở, trong bối cảnh) dùng để bổ nghĩa trực tiếp cho danh từ N2 phía sau. Dịch: &quot;Sự hợp tác của khu vực trong lúc xảy ra thảm họa (災害時) là vô cùng quan trọng để giảm thiểu thiệt hại.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">における</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N1 + における + N2' (tại, ở, trong bối cảnh) dùng để bổ nghĩa trực tiếp cho danh từ N2 phía sau. Dịch: &quot;Sự hợp tác của khu vực trong lúc xảy ra thảm họa (災害時) là vô cùng quan trọng để giảm thiểu thiệt hại.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="Cấu trúc 'N + において' cũng chỉ bối cảnh, lĩnh vực, nhưng nó bổ nghĩa cho động từ hoặc cả cụm câu phía sau, không đứng trực tiếp trước một danh từ (地域の協力) để bổ nghĩa cho nó.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">において</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + において' cũng chỉ bối cảnh, lĩnh vực, nhưng nó bổ nghĩa cho động từ hoặc cả cụm câu phía sau, không đứng trực tiếp trước một danh từ (地域の協力) để bổ nghĩa cho nó.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'にとって' đi với danh từ chỉ người hoặc tổ chức để đưa ra quan điểm/nhận xét. Không đi kèm với danh từ chỉ thời điểm sự việc (災害時) theo cách này.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">にとって</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'にとって' đi với danh từ chỉ người hoặc tổ chức để đưa ra quan điểm/nhận xét. Không đi kèm với danh từ chỉ thời điểm sự việc (災害時) theo cách này.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'に沿った' mang nghĩa 'men theo / tuân theo (kế hoạch, phương châm)', không hợp ngữ nghĩa chỉ bối cảnh thời gian.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">に沿った</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'に沿った' mang nghĩa 'men theo / tuân theo (kế hoạch, phương châm)', không hợp ngữ nghĩa chỉ bối cảnh thời gian.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="18">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 19</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">テレビの動物番組を見たの（　　）、将来は獣医（動物の医者）になりたいと思うようになった。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'từ cơ duyên / nhờ việc... mà bắt đầu'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="'～に限って' mang nghĩa 'chỉ riêng / đúng lúc', không dùng để chỉ nguyên nhân hay cơ duyên dẫn đến một sự thay đổi trong tương lai.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">に限って</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～に限って' mang nghĩa 'chỉ riêng / đúng lúc', không dùng để chỉ nguyên nhân hay cơ duyên dẫn đến một sự thay đổi trong tương lai.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cấu trúc 'N + がきっかけで' mang nghĩa 'từ cơ duyên / nhờ việc... mà bắt đầu'. Dịch: &quot;Từ việc xem một chương trình động vật (動物番組) trên tivi mà tôi bắt đầu muốn trở thành bác sĩ thú y trong tương lai.&quot;">
+            <span class="opt-label">B</span>
+            <span class="opt-text">がきっかけで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + がきっかけで' mang nghĩa 'từ cơ duyên / nhờ việc... mà bắt đầu'. Dịch: &quot;Từ việc xem một chương trình động vật (動物番組) trên tivi mà tôi bắt đầu muốn trở thành bác sĩ thú y trong tương lai.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Không có cấu trúc '～を最後にして' mang nghĩa nguyên nhân/cơ duyên trong trường hợp này.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">を最後にして</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Không có cấu trúc '～を最後にして' mang nghĩa nguyên nhân/cơ duyên trong trường hợp này.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'次第で' mang nghĩa 'tùy thuộc vào...', hoặc 'ngay sau khi...' (nếu ghép sau V-masu bỏ masu). Không ghép với danh từ hóa hành động quá khứ (見たの) theo ý nghĩa nguyên nhân khơi mào.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">次第で</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'次第で' mang nghĩa 'tùy thuộc vào...', hoặc 'ngay sau khi...' (nếu ghép sau V-masu bỏ masu). Không ghép với danh từ hóa hành động quá khứ (見たの) theo ý nghĩa nguyên nhân khơi mào.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="19">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 20</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">このビルは、大きな地震が起きると、エレベーターが自動的に止まる（　　）。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc diễn tả một cơ chế, hệ thống được lập trình/thiết kế sẵn.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'V-る / V-ない + ようになっている' diễn tả một cơ chế, hệ thống được lập trình/thiết kế sẵn. Dịch: &quot;Tòa nhà này được thiết kế sao cho khi có động đất lớn xảy ra, thang máy sẽ tự động dừng lại.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">ようになっています</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'V-る / V-ない + ようになっている' diễn tả một cơ chế, hệ thống được lập trình/thiết kế sẵn. Dịch: &quot;Tòa nhà này được thiết kế sao cho khi có động đất lớn xảy ra, thang máy sẽ tự động dừng lại.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'ことになっている' dùng để nói về quy định, tập quán hoặc nội quy áp dụng cho con người/xã hội, không dùng cho cơ chế vận hành tự động của máy móc/thang máy.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ことになっています</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'ことになっている' dùng để nói về quy định, tập quán hoặc nội quy áp dụng cho con người/xã hội, không dùng cho cơ chế vận hành tự động của máy móc/thang máy.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'はずがない' (tuyệt đối không thể) biểu thị sự phủ định chủ quan mạnh mẽ của người nói, không dùng để thuyết minh khách quan về tính năng của hệ thống.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">はずがありません</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'はずがない' (tuyệt đối không thể) biểu thị sự phủ định chủ quan mạnh mẽ của người nói, không dùng để thuyết minh khách quan về tính năng của hệ thống.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="Mang ý nghĩa tương tự 'はずがない', không phù hợp với văn cảnh mô tả cơ chế hệ thống bảo vệ của tòa nhà.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">わけがありません</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Mang ý nghĩa tương tự 'はずがない', không phù hợp với văn cảnh mô tả cơ chế hệ thống bảo vệ của tòa nhà.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="20">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 21</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">この特別料金は、国内に在住している方（　　）、ご利用いただけます。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'chỉ giới hạn dành cho...'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'N + に限り' mang nghĩa 'chỉ giới hạn dành cho...'. Câu này mang ý nghĩa thông báo ưu đãi: &quot;Mức phí đặc biệt (特別料金) này chỉ giới hạn dành cho những người đang sinh sống (在住) ở trong nước (国内).&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">に限り</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + に限り' mang nghĩa 'chỉ giới hạn dành cho...'. Câu này mang ý nghĩa thông báo ưu đãi: &quot;Mức phí đặc biệt (特別料金) này chỉ giới hạn dành cho những người đang sinh sống (在住) ở trong nước (国内).&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'N + ににとって' mang nghĩa 'đối với...', dùng để đưa ra đánh giá từ lập trường của ai đó, không dùng để đưa ra giới hạn đối tượng được hưởng dịch vụ.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">にとって</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'N + ににとって' mang nghĩa 'đối với...', dùng để đưa ra đánh giá từ lập trường của ai đó, không dùng để đưa ra giới hạn đối tượng được hưởng dịch vụ.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'にかかわらず' mang nghĩa 'bất kể / không phân biệt', đi ngược lại hoàn toàn với ý nghĩa &quot;giới hạn đối tượng&quot; của câu.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">にかかわらず</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'にかかわらず' mang nghĩa 'bất kể / không phân biệt', đi ngược lại hoàn toàn với ý nghĩa &quot;giới hạn đối tượng&quot; của câu.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'において' chỉ địa điểm, bối cảnh diễn ra hành động, không dùng để khoanh vùng đối tượng khách hàng.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">において</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'において' chỉ địa điểm, bối cảnh diễn ra hành động, không dùng để khoanh vùng đối tượng khách hàng.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="21">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 22</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">外国語の勉強は、時間を費やせ（　　）費やす（　　）、上達します。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc diễn tả mức độ tăng tiến đồng đều (càng... càng...).</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc '（～ば）～ほど' mang nghĩa 'càng... càng...'. Câu này có nghĩa: &quot;Việc học ngoại ngữ thì thời gian càng tiêu tốn/dành ra (費やす) nhiều sẽ càng tiến bộ (上達する).&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">ば／ほど</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc '（～ば）～ほど' mang nghĩa 'càng... càng...'. Câu này có nghĩa: &quot;Việc học ngoại ngữ thì thời gian càng tiêu tốn/dành ra (費やす) nhiều sẽ càng tiến bộ (上達する).&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="Không có cấu trúc '～と～だけ' để chỉ mức độ tăng tiến tương đương.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">と／だけ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Không có cấu trúc '～と～だけ' để chỉ mức độ tăng tiến tương đương.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Sai hoàn toàn về mặt ghép cặp ngữ pháp. 'たら' là điều kiện, 'まで' là điểm giới hạn.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">たら／まで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Sai hoàn toàn về mặt ghép cặp ngữ pháp. 'たら' là điều kiện, 'まで' là điểm giới hạn.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'ても' (cho dù) không kết hợp với 'くらい' (đến mức) để biểu thị sự tăng tiến &quot;càng... càng...&quot;.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">ても／くらい</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'ても' (cho dù) không kết hợp với 'くらい' (đến mức) để biểu thị sự tăng tiến &quot;càng... càng...&quot;.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="22">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 23</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">毎日、日本語の放送を聞く（　　）、自然な発音が身につきます。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'bằng cách / thông qua việc...'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'V-る + ことで' mang nghĩa 'bằng cách / thông qua việc...'. Dùng để chỉ phương pháp để đạt được kết quả tích cực ở vế sau. Dịch: &quot;Thông qua việc nghe các chương trình phát sóng (放送) tiếng Nhật mỗi ngày, bạn sẽ trang bị được phát âm tự nhiên.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">ことで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'V-る + ことで' mang nghĩa 'bằng cách / thông qua việc...'. Dùng để chỉ phương pháp để đạt được kết quả tích cực ở vế sau. Dịch: &quot;Thông qua việc nghe các chương trình phát sóng (放送) tiếng Nhật mỗi ngày, bạn sẽ trang bị được phát âm tự nhiên.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'～こと' đứng cuối câu dùng để ra lệnh, quy định, không tạo thành cấu trúc chỉ phương pháp, cách thức.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">こと</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'～こと' đứng cuối câu dùng để ra lệnh, quy định, không tạo thành cấu trúc chỉ phương pháp, cách thức.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Cấu trúc 'ことには' phải đi kèm với động từ thể phủ định (V-ない) mang nghĩa 'nếu không... thì không thể', không dùng ở câu khẳng định.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ことには</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'ことには' phải đi kèm với động từ thể phủ định (V-ない) mang nghĩa 'nếu không... thì không thể', không dùng ở câu khẳng định.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'なんて' dùng để bộc lộ cảm xúc ngạc nhiên, coi thường, không dùng để diễn đạt phương pháp học tập.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">なんて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'なんて' dùng để bộc lộ cảm xúc ngạc nhiên, coi thường, không dùng để diễn đạt phương pháp học tập.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="23">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 24</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">今回の旅行は、参加人数の多い少ない（　　）、出発することが決定しています。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'bất kể / không liên quan đến'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'N + にかかわらず' mang nghĩa 'bất kể / không liên quan đến'. Dịch: &quot;Chuyến du lịch lần này đã được quyết định (決定) là sẽ xuất phát bất kể số lượng người tham gia (参加人数) nhiều hay ít.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">にかかわらず</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + にかかわらず' mang nghĩa 'bất kể / không liên quan đến'. Dịch: &quot;Chuyến du lịch lần này đã được quyết định (決定) là sẽ xuất phát bất kể số lượng người tham gia (参加人数) nhiều hay ít.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="Mang nghĩa 'chỉ giới hạn cho...', không thể đi sau cụm từ mang tính đối lập (nhiều hay ít) để tạo câu quyết định không phụ thuộc vào điều kiện.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">に限り</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Mang nghĩa 'chỉ giới hạn cho...', không thể đi sau cụm từ mang tính đối lập (nhiều hay ít) để tạo câu quyết định không phụ thuộc vào điều kiện.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'N + において' mang nghĩa 'tại / ở', chỉ dùng cho địa điểm hoặc bối cảnh.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">において</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'N + において' mang nghĩa 'tại / ở', chỉ dùng cho địa điểm hoặc bối cảnh.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'にとって' mang nghĩa 'đối với (lập trường ai đó)', không dùng trong câu thông báo không phụ thuộc điều kiện.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">にとって</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'にとって' mang nghĩa 'đối với (lập trường ai đó)', không dùng trong câu thông báo không phụ thuộc điều kiện.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="24">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 25</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">今年の梅雨は、気象庁の予想（　　）大雨の日が多い。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'theo đúng như / hệt như...'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'N + どおりに' mang nghĩa 'theo đúng như / hệt như...'. Khi ghép trực tiếp với danh từ không có trợ từ 'の', ta biến âm thành 'どおりに'. Dịch: &quot;Mùa mưa (梅雨) năm nay có nhiều ngày mưa to đúng như dự báo (予想) của Cục khí tượng (気象庁).&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">どおりに</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N + どおりに' mang nghĩa 'theo đúng như / hệt như...'. Khi ghép trực tiếp với danh từ không có trợ từ 'の', ta biến âm thành 'どおりに'. Dịch: &quot;Mùa mưa (梅雨) năm nay có nhiều ngày mưa to đúng như dự báo (予想) của Cục khí tượng (気象庁).&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="Nếu dùng 'とおりに', bắt buộc phải có trợ từ 'の' đứng trước (予想のとおりに).">
+            <span class="opt-label">B</span>
+            <span class="opt-text">とおりに</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Nếu dùng 'とおりに', bắt buộc phải có trợ từ 'の' đứng trước (予想のとおりに).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'次第に' là phó từ mang nghĩa 'dần dần', hoàn toàn không hợp với ý nghĩa &quot;đúng như dự báo&quot;.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">次第に</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'次第に' là phó từ mang nghĩa 'dần dần', hoàn toàn không hợp với ý nghĩa &quot;đúng như dự báo&quot;.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'に沿って' có nghĩa 'men theo / tuân theo (kế hoạch, quy tắc)', nhưng với &quot;dự báo, suy nghĩ, dự định&quot; thì 'どおりに' là ngữ pháp chuẩn xác và tự nhiên nhất.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">に沿って</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'に沿って' có nghĩa 'men theo / tuân theo (kế hoạch, quy tắc)', nhưng với &quot;dự báo, suy nghĩ, dự định&quot; thì 'どおりに' là ngữ pháp chuẩn xác và tự nhiên nhất.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="25">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 26</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">沖縄に台風が接近している（　　）、明日の飛行機は欠航になるそうだ。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc dùng để nêu lý do một cách không chắc chắn qua lời đồn, bản tin.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc '～とかで' mang nghĩa 'nghe nói là vì... / hình như là do...'. Dùng để nêu lý do một cách không chắc chắn qua lời đồn, bản tin hoặc nghe kể lại. Dịch: &quot;Nghe nói là do bão đang tiếp cận (接近) Okinawa nên máy bay ngày mai sẽ bị hủy chuyến (欠航).&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">とかで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc '～とかで' mang nghĩa 'nghe nói là vì... / hình như là do...'. Dùng để nêu lý do một cách không chắc chắn qua lời đồn, bản tin hoặc nghe kể lại. Dịch: &quot;Nghe nói là do bão đang tiếp cận (接近) Okinawa nên máy bay ngày mai sẽ bị hủy chuyến (欠航).&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'ことで' dùng để chỉ phương pháp hoặc nguyên nhân, nhưng không mang sắc thái &quot;nghe kể lại&quot; khớp với đuôi câu 'そうだ'.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ことで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'ことで' dùng để chỉ phương pháp hoặc nguyên nhân, nhưng không mang sắc thái &quot;nghe kể lại&quot; khớp với đuôi câu 'そうだ'.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'において' chỉ địa điểm, bối cảnh diễn ra hành động, không dùng để chỉ lý do, nguyên nhân.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">において</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'において' chỉ địa điểm, bối cảnh diễn ra hành động, không dùng để chỉ lý do, nguyên nhân.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'なんて' bộc lộ sự ngạc nhiên, chê bai, không dùng để truyền đạt lại thông tin khách quan về thời tiết.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">なんて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'なんて' bộc lộ sự ngạc nhiên, chê bai, không dùng để truyền đạt lại thông tin khách quan về thời tiết.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="26">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 27</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">【寮の掲示板】 夜10時以降は、大きな音を立てない（　　）。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc dùng cuối câu để biểu đạt mệnh lệnh, quy định trên các bảng thông báo.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'V-る/V-ない + こと' dùng cuối câu để biểu đạt mệnh lệnh, quy định trên các bảng thông báo, nội quy. Dịch: &quot;[Bảng thông báo của ký túc xá] Sau 10 giờ đêm (以降), không được làm ồn / gây ra tiếng động lớn (音を立てる).&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">こと</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'V-る/V-ない + こと' dùng cuối câu để biểu đạt mệnh lệnh, quy định trên các bảng thông báo, nội quy. Dịch: &quot;[Bảng thông báo của ký túc xá] Sau 10 giờ đêm (以降), không được làm ồn / gây ra tiếng động lớn (音を立てる).&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'はず' diễn tả sự phỏng đoán chắc chắn (chắc chắn là...), không dùng cho các quy định, nội quy mang tính bắt buộc.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">はず</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'はず' diễn tả sự phỏng đoán chắc chắn (chắc chắn là...), không dùng cho các quy định, nội quy mang tính bắt buộc.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'わけ' thường dùng để giải thích lý do, nguồn cơn sự việc, không dùng để viết bảng nội quy.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">わけ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'わけ' thường dùng để giải thích lý do, nguồn cơn sự việc, không dùng để viết bảng nội quy.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'でしょう' là phỏng đoán 'có lẽ', quá nhẹ nhàng, không mang tính chất răn đe của nội quy.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">でしょう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'でしょう' là phỏng đoán 'có lẽ', quá nhẹ nhàng, không mang tính chất răn đe của nội quy.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="27">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 28</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">現代社会（　　）情報の役割は非常に大きいです。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc bổ nghĩa trực tiếp cho danh từ phía sau, diễn tả bối cảnh, thời đại.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'N1 + における + N2' mang nghĩa 'tại, ở, trong (bối cảnh, thời đại)'. Nó bổ nghĩa trực tiếp cho danh từ N2 phía sau. Dịch: &quot;Vai trò (役割) của thông tin (情報) trong xã hội hiện đại (現代社会) là vô cùng lớn.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">における</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'N1 + における + N2' mang nghĩa 'tại, ở, trong (bối cảnh, thời đại)'. Nó bổ nghĩa trực tiếp cho danh từ N2 phía sau. Dịch: &quot;Vai trò (役割) của thông tin (情報) trong xã hội hiện đại (現代社会) là vô cùng lớn.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'において' cũng chỉ bối cảnh, địa điểm nhưng dùng để bổ nghĩa cho động từ hoặc cả cụm câu phía sau, không đứng trực tiếp trước danh từ (情報の役割) để bổ nghĩa cho nó.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">において</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'において' cũng chỉ bối cảnh, địa điểm nhưng dùng để bổ nghĩa cho động từ hoặc cả cụm câu phía sau, không đứng trực tiếp trước danh từ (情報の役割) để bổ nghĩa cho nó.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'にとって' (đối với) dùng để đưa ra quan điểm từ lập trường của một người/nhóm người, không kết hợp với từ chỉ bối cảnh/ thời đại (現代社会) theo cách này.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">にとって</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'にとって' (đối với) dùng để đưa ra quan điểm từ lập trường của một người/nhóm người, không kết hợp với từ chỉ bối cảnh/ thời đại (現代社会) theo cách này.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'にかかわらず' mang nghĩa 'bất kể', hoàn toàn sai về mặt ý nghĩa.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">にかかわらず</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'にかかわらず' mang nghĩa 'bất kể', hoàn toàn sai về mặt ý nghĩa.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="28">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 29</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">買ったばかりの新しい機械をすぐに壊してしまう（　　）、本当に残念だ。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc dùng để bộc lộ sự kinh ngạc, coi thường, hoặc tiếc nuối trước một sự việc.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc '～なんて' dùng để bộc lộ sự kinh ngạc, coi thường, hoặc tiếc nuối trước một sự việc. Dịch: &quot;Cái việc làm hỏng ngay chiếc máy (機械) mới vừa mua xong, thật sự là đáng tiếc (残念).&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">なんて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc '～なんて' dùng để bộc lộ sự kinh ngạc, coi thường, hoặc tiếc nuối trước một sự việc. Dịch: &quot;Cái việc làm hỏng ngay chiếc máy (機械) mới vừa mua xong, thật sự là đáng tiếc (残念).&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="'に限り' nghĩa là 'chỉ giới hạn cho...', không dùng sau một cụm động từ để diễn tả cảm xúc cá nhân.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">に限り</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'に限り' nghĩa là 'chỉ giới hạn cho...', không dùng sau một cụm động từ để diễn tả cảm xúc cá nhân.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="'ことで' chỉ phương pháp/nguyên nhân (bằng cách / vì). Câu này nhằm đánh giá sự việc, bộc lộ sự tiếc nuối chứ không chỉ phương pháp.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ことで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'ことで' chỉ phương pháp/nguyên nhân (bằng cách / vì). Câu này nhằm đánh giá sự việc, bộc lộ sự tiếc nuối chứ không chỉ phương pháp.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'どおりに' (làm theo đúng như) không phù hợp với cấu trúc câu cảm thán.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">どおりに</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'どおりに' (làm theo đúng như) không phù hợp với cấu trúc câu cảm thán.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="29">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 30</span>
+            <span class="q-of">/ 30</span>
+          </div>
+          <div class="q-text">普段は優しい先生ですが、約束を守らないと厳しく怒る（　　）。</div>
+          
+        <div class="hint-box">
+          <button class="hint-toggle" onclick="this.parentElement.classList.toggle('show')">
+            💡 Hint
+          </button>
+          <div class="hint-content">Cấu trúc mang nghĩa 'thỉnh thoảng cũng có lúc...'.</div>
+        </div>
+      
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc 'V-る + こともある' mang nghĩa 'thỉnh thoảng cũng có lúc...'. Dịch: &quot;Bình thường (普段) thầy là người hiền lành, nhưng cũng có lúc thầy sẽ tức giận (怒る) nghiêm khắc nếu không giữ lời hứa.&quot;">
+            <span class="opt-label">A</span>
+            <span class="opt-text">こともある</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc 'V-る + こともある' mang nghĩa 'thỉnh thoảng cũng có lúc...'. Dịch: &quot;Bình thường (普段) thầy là người hiền lành, nhưng cũng có lúc thầy sẽ tức giận (怒る) nghiêm khắc nếu không giữ lời hứa.&quot;</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="Cấu trúc này dùng để chỉ một quy tắc, tập quán hoặc nội quy chung chung, không dùng để nói về nét tính cách, phản ứng của một cá nhân cụ thể.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ことになっています</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc này dùng để chỉ một quy tắc, tập quán hoặc nội quy chung chung, không dùng để nói về nét tính cách, phản ứng của một cá nhân cụ thể.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="Dùng để chỉ cơ chế vận hành của máy móc/hệ thống tự động, không áp dụng cho cảm xúc của con người.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ようになっています</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Dùng để chỉ cơ chế vận hành của máy móc/hệ thống tự động, không áp dụng cho cảm xúc của con người.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="'はずがない' (chắc chắn không thể) là lời phủ định mạnh mẽ, đi ngược lại với logic &quot;vì hiền lành nên đôi khi vẫn nổi giận nếu làm sai&quot;.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">はずがありません</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">'はずがない' (chắc chắn không thể) là lời phủ định mạnh mẽ, đi ngược lại với logic &quot;vì hiền lành nên đôi khi vẫn nổi giận nếu làm sai&quot;.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      </div>
+  <div class="results" id="results">
+    <h2>Hoàn thành bài kiểm tra!</h2>
+    <div class="score" id="score">0%</div>
+    <div class="score-text" id="score-text"></div>
+    <button class="restart-btn" onclick="restart()">Thử lại</button>
+  </div>
+</div>
+<script>
+const quizData = [{"question":"就職活動のための交流会は、駅前の広場（　　）行われます。","hint":"Cần một trợ từ mang sắc thái trang trọng dùng để chỉ địa điểm, tình huống diễn ra sự kiện.","options":[{"label":"A","text":"に沿って","isCorrect":false,"rationale":"'N + に沿って' có nghĩa là 'men theo / tuân theo' (ví dụ: tuân theo kế hoạch, men theo con đường), không dùng để chỉ địa điểm tổ chức sự kiện."},{"label":"B","text":"にとって","isCorrect":false,"rationale":"'N + にとって' mang nghĩa 'đối với (lập trường của ai đó)', không dùng để chỉ nơi chốn."},{"label":"C","text":"にかけて","isCorrect":false,"rationale":"'から～にかけて' nghĩa là 'từ... đến...', chỉ một khoảng thời gian hoặc không gian, không dùng đơn độc với một danh từ địa điểm."},{"label":"D","text":"において","isCorrect":true,"rationale":"Cấu trúc 'N + において' là cách nói trang trọng của trợ từ 'で', dùng để chỉ địa điểm, tình huống diễn ra sự kiện. Câu này có nghĩa: \"Buổi giao lưu dành cho hoạt động tìm việc sẽ được tổ chức tại quảng trường trước nhà ga.\""}]},{"question":"気象庁の発表によると、明日は関東地方（　　）東北地方（　　）、大雨が続く見込みです。","hint":"Cấu trúc diễn tả một khoảng không gian (hoặc thời gian) có ranh giới không quá rõ ràng, thường dùng trong dự báo thời tiết.","options":[{"label":"A","text":"から／にかけて","isCorrect":true,"rationale":"Cấu trúc 'N1 から N2 にかけて' mang nghĩa 'từ... đến...' diễn tả một khoảng không gian (hoặc thời gian) có ranh giới không quá rõ ràng, thường dùng trong dự báo thời tiết. Dịch: \"Theo thông báo của Cục khí tượng, ngày mai dự kiến sẽ có mưa to kéo dài từ khu vực Kanto đến khu vực Tohoku.\""},{"label":"B","text":"において／における","isCorrect":false,"rationale":"'において' chỉ địa điểm/tình huống tại một điểm cụ thể, không dùng theo cặp để chỉ một phạm vi trải dài."},{"label":"C","text":"にとって／のこと","isCorrect":false,"rationale":"'にとって' nghĩa là 'đối với...', hoàn toàn sai về mặt ý nghĩa và cấu trúc."},{"label":"D","text":"ば／ほど","isCorrect":false,"rationale":"Cấu trúc '～ば～ほど' mang nghĩa 'càng... càng...', không dùng để ghép với các danh từ chỉ địa danh."}]},{"question":"明日は全国的に青空が広がり、気持ちのいい行楽日和になる（　　）。","hint":"Cấu trúc mang ý nghĩa phỏng đoán 'có lẽ là / chắc là' rất phổ biến trong dự báo thời tiết.","options":[{"label":"A","text":"はずがない","isCorrect":false,"rationale":"'～はずがない' nghĩa là 'tuyệt đối không thể xảy ra', mang tính chủ quan của người nói, không dùng cho thông báo mang tính khách quan của dự báo thời tiết."},{"label":"B","text":"でしょう","isCorrect":true,"rationale":"Cấu trúc '～でしょう' mang ý nghĩa phỏng đoán 'có lẽ là / chắc là'. Câu này rất phổ biến trong dự báo thời tiết: \"Ngày mai bầu trời xanh sẽ trải rộng trên toàn quốc, có lẽ sẽ là một ngày thời tiết đẹp rất thích hợp để đi chơi.\""},{"label":"C","text":"こともある","isCorrect":false,"rationale":"'～こともある' nghĩa là 'thỉnh thoảng cũng có lúc', không dùng để đưa ra lời dự báo chắc chắn cho ngày mai."},{"label":"D","text":"なんて","isCorrect":false,"rationale":"'～なんて' dùng để bộc lộ cảm xúc ngạc nhiên, chê bai, hoàn toàn không phù hợp với văn phong bản tin thời tiết."}]},{"question":"地域の交流会（　　）、外国の文化に興味を持つようになりました。","hint":"Cấu trúc diễn đạt 'nhờ đâu / từ cơ duyên nào mà...' bắt đầu một sở thích hay sự quan tâm.","options":[{"label":"A","text":"に限り","isCorrect":false,"rationale":"'N + に限り' mang nghĩa 'chỉ giới hạn dành cho...', không dùng để chỉ lý do bắt đầu một sở thích hay sự quan tâm."},{"label":"B","text":"ことで","isCorrect":false,"rationale":"Mặc dù '～ことで' cũng có thể chỉ phương pháp, nhưng khi nói về \"nguồn cơn/cơ duyên\" để bắt đầu sự việc, 'がきっかけで' mới là ngữ pháp chuẩn xác nhất."},{"label":"C","text":"がきっかけで","isCorrect":true,"rationale":"Cấu trúc 'N + がきっかけで' mang nghĩa 'nhờ đâu / từ cơ duyên nào mà...'. Dịch: \"Nhờ (duyên cớ) buổi giao lưu của khu vực mà tôi đã bắt đầu có hứng thú với văn hóa nước ngoài.\""},{"label":"D","text":"において","isCorrect":false,"rationale":"'N + において' mang nghĩa 'tại / ở' (địa điểm), không đóng vai trò chỉ lý do hay cơ duyên."}]},{"question":"この機械の操作はとても簡単なので、初心者（　　）すぐに覚えられます。","hint":"Cấu trúc dùng để đưa ra một ví dụ cực đoan (ngay cả...).","options":[{"label":"A","text":"でも","isCorrect":true,"rationale":"Cấu trúc 'N + でも' dùng để đưa ra một ví dụ cực đoan (ngay cả...). Câu này mang nghĩa: \"Vì thao tác của loại máy móc này rất đơn giản nên ngay cả người mới bắt đầu (初心者) cũng có thể nhớ được ngay.\""},{"label":"B","text":"に限り","isCorrect":false,"rationale":"Nghĩa là 'chỉ giới hạn cho người mới bắt đầu'. Câu này sai logic vì máy dễ sử dụng thì ai cũng dùng được chứ không phải \"chỉ\" người mới dùng được."},{"label":"C","text":"にとって","isCorrect":false,"rationale":"'N + ににとって' mang nghĩa 'đối với (đánh giá từ lập trường ai đó)'. Nếu dùng ngữ pháp này, vế sau phải là tính từ đánh giá (vd: dễ, khó), không thể đi trực tiếp với động từ khả năng '覚えられます'."},{"label":"D","text":"にかかわらず","isCorrect":false,"rationale":"'にかかわらず' mang nghĩa 'bất kể'. Nếu dùng ở đây, danh từ phía trước phải là một từ chỉ sự bao quát, không thể dùng với danh từ chỉ đối tượng cụ thể \"người mới bắt đầu\" theo cách này."}]},{"question":"このサイトは、パスワードを正しく入力しないと、次のページに進めない（　　）。","hint":"Cấu trúc diễn tả một cơ chế, hệ thống máy móc hoặc quy định đã được thiết lập sẵn.","options":[{"label":"A","text":"はずがありません","isCorrect":false,"rationale":"'～はずがない' nghĩa là 'tuyệt đối không thể / làm gì có chuyện...', đi ngược lại hoàn toàn với việc mô tả hệ thống bảo mật của trang web."},{"label":"B","text":"ようになっています","isCorrect":true,"rationale":"Cấu trúc 'V-る/V-ない + ようになっている' diễn tả một cơ chế, hệ thống máy móc hoặc quy định đã được thiết lập sẵn 'được thiết kế để...'. Dịch: \"Trang web này được thiết kế để không thể tiến sang trang tiếp theo nếu không nhập đúng mật khẩu.\""},{"label":"C","text":"ことになっています","isCorrect":false,"rationale":"Ngữ pháp này thường dùng để chỉ một quy tắc, nội quy chung chung mang tính ép buộc con người, không diễn tả cơ chế tự động của hệ thống phần mềm/website."},{"label":"D","text":"わけがありません","isCorrect":false,"rationale":"Tương tự 'はずがない', mang ý nghĩa 'không lý nào lại...', không dùng để mô tả tính năng của website."}]},{"question":"当店では、学生証を持参されたお客様（　　）、すべての商品を半額で販売いたします。","hint":"Cấu trúc mang nghĩa 'chỉ giới hạn dành cho...', hay gặp trên tờ rơi, thông báo ưu đãi.","options":[{"label":"A","text":"に限り","isCorrect":true,"rationale":"Cấu trúc 'N + に限り' mang nghĩa 'chỉ giới hạn dành cho...'. Ngữ pháp này rất hay gặp trên tờ rơi, thông báo ưu đãi: \"Tại quán chúng tôi, chỉ giới hạn cho những khách hàng có mang theo thẻ học sinh mới được mua mọi sản phẩm với giá giảm một nửa.\""},{"label":"B","text":"において","isCorrect":false,"rationale":"'において' chỉ địa điểm, bối cảnh diễn ra hành động. Không dùng để khoanh vùng đối tượng khách hàng nhận ưu đãi."},{"label":"C","text":"にかかわらず","isCorrect":false,"rationale":"'にかかわらず' là 'bất kể'. Nếu \"bất kể khách hàng nào\" thì việc nhấn mạnh \"mang theo thẻ học sinh\" trở nên vô nghĩa, sai tính logic của thông báo khuyến mãi."},{"label":"D","text":"に沿って","isCorrect":false,"rationale":"'に沿って' có nghĩa 'men theo / tuân theo' (ví dụ: tuân theo kế hoạch). Hoàn toàn sai ngữ nghĩa."}]},{"question":"こんなに安い値段で、これほど素晴らしい商品が手に入る（　　）、信じられない。","hint":"Cấu trúc dùng để bộc lộ sự kinh ngạc, không ngờ tới trước một sự việc.","options":[{"label":"A","text":"次第","isCorrect":false,"rationale":"'V-masu + 次第' là 'ngay sau khi...', hoàn toàn sai cả về cấu trúc động từ (thể từ điển - 手に入る) và ý nghĩa của câu."},{"label":"B","text":"でしょう","isCorrect":false,"rationale":"'～でしょう' là phỏng đoán 'có lẽ'. Vế sau đã khẳng định '信じられない' (không thể tin được) thì vế trước không thể là một sự phỏng đoán."},{"label":"C","text":"ことで","isCorrect":false,"rationale":"'～ことで' dùng để chỉ phương pháp hoặc nguyên nhân (bằng cách... / thông qua...), không dùng để cảm thán, ngạc nhiên."},{"label":"D","text":"なんて","isCorrect":true,"rationale":"Cấu trúc '～なんて' dùng để bộc lộ sự kinh ngạc, không ngờ tới trước một sự việc. Cả câu: \"Cái việc có thể mua được sản phẩm tuyệt vời đến thế này với mức giá rẻ như vậy, thật không thể tin được.\""}]},{"question":"普段は健康のために自分で料理を作りますが、疲れた時はお弁当を買う（　　）。","hint":"Cấu trúc mang nghĩa 'thỉnh thoảng cũng có lúc làm gì đó'.","options":[{"label":"A","text":"こともある","isCorrect":true,"rationale":"Cấu trúc 'V-る + こともある' mang nghĩa 'thỉnh thoảng cũng có lúc làm gì đó'. Phù hợp hoàn hảo với ngữ cảnh: \"Bình thường tôi tự nấu ăn vì sức khỏe, nhưng những lúc mệt mỏi thì thỉnh thoảng cũng có lúc tôi mua cơm hộp.\""},{"label":"B","text":"はずがありません","isCorrect":false,"rationale":"'～はずがない' là phủ định mạnh mẽ 'chắc chắn không thể', không phù hợp để nói về một hành động thỉnh thoảng xảy ra nhằm giải quyết sự mệt mỏi."},{"label":"C","text":"ようになっています","isCorrect":false,"rationale":"Ngữ pháp này dùng để chỉ cơ chế hoạt động của máy móc/hệ thống, không dùng để nói về thói quen sinh hoạt của bản thân."},{"label":"D","text":"に限りません","isCorrect":false,"rationale":"Ngữ pháp 'N + に限り' không dùng để phủ định hành động cá nhân theo cách này."}]},{"question":"本は、読め（　　）読む（　　）、新しい知識が増えて面白いです。","hint":"Cấu trúc biểu thị sự tương quan đồng tiến (càng... càng...).","options":[{"label":"A","text":"ば／ほど","isCorrect":true,"rationale":"Cấu trúc '（～ば）～ほど' mang nghĩa 'càng... càng...'. Biểu thị sự tương quan đồng tiến. Dịch: \"Sách thì càng đọc sẽ càng tăng thêm kiến thức mới và càng thấy thú vị.\""},{"label":"B","text":"と／だけ","isCorrect":false,"rationale":"Không có cấu trúc '～と～だけ' để chỉ mức độ tăng tiến tương đồng trong tiếng Nhật."},{"label":"C","text":"たら／まで","isCorrect":false,"rationale":"Sai hoàn toàn về mặt ghép cặp ngữ pháp. 'たら' là điều kiện (nếu/sau khi), 'まで' là giới hạn (đến khi)."},{"label":"D","text":"ても／くらい","isCorrect":false,"rationale":"'ても' (cho dù) không thể kết hợp với 'くらい' (đến mức) để chỉ sự tăng tiến \"càng... càng...\"."}]},{"question":"毎朝、少しの時間を運動に使う（　　）、ストレスを解消できる。","hint":"Cấu trúc mang nghĩa 'bằng cách / thông qua việc...' dùng để chỉ phương pháp.","options":[{"label":"A","text":"ことで","isCorrect":true,"rationale":"Cấu trúc 'V-る + ことで' mang nghĩa 'bằng cách / thông qua việc...'. Dùng để chỉ phương pháp hoặc phương tiện để đạt được kết quả phía sau. Dịch: \"Thông qua việc dành một chút thời gian mỗi sáng để vận động, ta có thể giải tỏa được căng thẳng (ストレスを解消できる).\""},{"label":"B","text":"ことだし","isCorrect":false,"rationale":"'～ことだし' mang nghĩa 'vì... nên...', dùng để đưa ra hoàn cảnh/lý do làm cơ sở cho quyết định, không dùng để chỉ phương pháp."},{"label":"C","text":"ことには","isCorrect":false,"rationale":"Cấu trúc này thường đi với thể phủ định 'ないことには' nghĩa là 'nếu không... thì không thể', không kết hợp với động từ khẳng định ở đây."},{"label":"D","text":"こと","isCorrect":false,"rationale":"'～こと' đứng cuối câu mang ý nghĩa mệnh lệnh, quy định, không tạo thành cấu trúc chỉ phương pháp."}]},{"question":"現代の若者（　　）、スマートフォンは生活に欠かせない情報手段である。","hint":"Cấu trúc mang nghĩa 'đối với (lập trường của ai đó)...'.","options":[{"label":"A","text":"に沿って","isCorrect":false,"rationale":"'N + に沿って' có nghĩa là 'men theo / tuân theo' (ví dụ: tuân theo kế hoạch), không đi với đối tượng người để đưa ra đánh giá."},{"label":"B","text":"において","isCorrect":false,"rationale":"'N + において' mang nghĩa 'tại / ở' (địa điểm, thời đại), không dùng để đưa ra đánh giá từ góc nhìn của ai đó."},{"label":"C","text":"にとって","isCorrect":true,"rationale":"Cấu trúc 'N + にとって' mang nghĩa 'đối với (lập trường của ai đó)...'. Dịch: \"Đối với giới trẻ hiện đại (現代の若者), điện thoại thông minh là một phương tiện thông tin không thể thiếu trong cuộc sống.\""},{"label":"D","text":"にかけて","isCorrect":false,"rationale":"'～から～にかけて' nghĩa là 'từ... đến...', chỉ phạm vi không gian hoặc thời gian, hoàn toàn sai cấu trúc."}]},{"question":"この新しいソフトウェアは、実際に使って（　　）、本当に役に立つかどうかわからない。","hint":"Cấu trúc mang nghĩa 'nếu không làm... thì không thể biết/không thể làm...'.","options":[{"label":"A","text":"みたことには","isCorrect":false,"rationale":"Động từ đứng trước 'ことには' trong ngữ pháp này bắt buộc phải chia ở thể phủ định (V-ない), không được dùng thể quá khứ (V-た) hay (V-た/てみた)."},{"label":"B","text":"みないことには","isCorrect":true,"rationale":"Cấu trúc 'V-ないことには～ない' mang nghĩa 'nếu không làm... thì không thể biết/không thể làm...'. Dịch: \"Phần mềm mới này nếu không thực tế dùng thử thì sẽ không biết được liệu nó có thực sự hữu ích hay không.\""},{"label":"C","text":"みることで","isCorrect":false,"rationale":"Dù 'ことで' chỉ phương pháp (bằng cách dùng thử...), nhưng nó không tạo ra cấu trúc câu mang ý nghĩa điều kiện 'nếu không... thì không...'."},{"label":"D","text":"みないことで","isCorrect":false,"rationale":"'ないことで' mang nghĩa 'bằng cách không làm...', đi ngược lại hoàn toàn với logic của câu."}]},{"question":"市民公民館の料理講座は、年齢や性別（　　）、だれでも申し込むことができます。","hint":"Cấu trúc mang nghĩa 'bất kể / không liên quan đến'.","options":[{"label":"A","text":"にかかわらず","isCorrect":true,"rationale":"Cấu trúc 'N + にかかわらず' mang nghĩa 'bất kể / không liên quan đến'. Dịch: \"Khóa học nấu ăn của nhà văn hóa tự quản thì bất kể độ tuổi hay giới tính (年齢や性別), ai cũng có thể đăng ký (申し込む).\""},{"label":"B","text":"に沿って","isCorrect":false,"rationale":"Nghĩa là 'tuân theo'. Khóa học không thể \"tuân theo tuổi tác và giới tính\" để cho mọi người đăng ký được."},{"label":"C","text":"に限り","isCorrect":false,"rationale":"Nghĩa là 'chỉ giới hạn dành cho...' Nếu dùng từ này thì sẽ mâu thuẫn với vế sau \"ai cũng có thể đăng ký\"."},{"label":"D","text":"とかで","isCorrect":false,"rationale":"'～とかで' mang nghĩa 'nghe nói là vì...', không thể đứng sau danh từ 'độ tuổi và giới tính' để nối với vế câu chỉ điều kiện tham gia."}]},{"question":"明日の会議の準備は、部長が決めた計画（　　）進めてください。","hint":"Cấu trúc mang nghĩa 'theo đúng như / hệt như...'.","options":[{"label":"A","text":"とおりに","isCorrect":false,"rationale":"Khi ghép trực tiếp với danh từ mà không có trợ từ 'の', ta phải biến âm thành 'どおりに'. Nếu muốn dùng 'とおりに', phải là '計画のとおりに'."},{"label":"B","text":"どおりに","isCorrect":true,"rationale":"Cấu trúc 'N + どおりに' mang nghĩa 'theo đúng như / hệt như...'. Dịch: \"Việc chuẩn bị cho cuộc họp ngày mai, hãy tiến hành theo đúng kế hoạch (計画) mà trưởng phòng đã quyết định.\""},{"label":"C","text":"ように","isCorrect":false,"rationale":"Mặc dù 'ように' cũng mang nghĩa 'như là', nhưng với các danh từ mang tính khuôn mẫu, chuẩn mực rõ ràng (kế hoạch, chỉ thị), 'どおりに' được sử dụng để nhấn mạnh sự tuân thủ chính xác."},{"label":"D","text":"次第に","isCorrect":false,"rationale":"'次第に' là phó từ mang nghĩa 'dần dần', hoàn toàn sai về mặt ý nghĩa."}]},{"question":"今日は、大雪による停電（　　）、午後の授業はすべて休講になるそうだ。","hint":"Cấu trúc dùng để nêu lý do một cách không chắc chắn qua lời thông báo hoặc nghe kể.","options":[{"label":"A","text":"はずで","isCorrect":false,"rationale":"'はずだ' dùng để khẳng định chắc chắn một sự việc dựa trên logic. Không dùng khi muốn truyền đạt lại thông tin nghe kể/lời đồn."},{"label":"B","text":"とかで","isCorrect":true,"rationale":"Cấu trúc '～とかで' mang nghĩa 'nghe nói là vì... / hình như là do...'. Dùng để nêu lý do một cách không chắc chắn qua lời thông báo hoặc nghe kể. Dịch: \"Nghe nói là vì mất điện (停電) do tuyết lớn nên toàn bộ giờ học buổi chiều sẽ được nghỉ.\""},{"label":"C","text":"ところで","isCorrect":false,"rationale":"'ところで' (ngay khi / nhân tiện) không dùng để chỉ lý do, nguyên nhân."},{"label":"D","text":"上で","isCorrect":false,"rationale":"'～上で' mang nghĩa 'sau khi... thì mới...', hoàn toàn không phù hợp để chỉ lý do dẫn đến kết quả ở đây."}]},{"question":"【スポーツセンターの掲示板】 使ったトレーニング器具は、必ず元の場所に片付ける（　　）。","hint":"Cấu trúc dùng cuối câu để biểu đạt mệnh lệnh, quy định trên bảng thông báo, nội quy.","options":[{"label":"A","text":"はず","isCorrect":false,"rationale":"'はず' dùng để phỏng đoán chắc chắn (chắc chắn là...), không dùng để đưa ra quy định hay nội quy trên bảng thông báo."},{"label":"B","text":"わけ","isCorrect":false,"rationale":"'わけ' thường dùng để giải thích lý do, nguồn cơn sự việc, không dùng làm từ mệnh lệnh hay quy định."},{"label":"C","text":"こと","isCorrect":true,"rationale":"Cấu trúc 'V-る/V-ない + こと' dùng cuối câu để biểu đạt mệnh lệnh, quy định. Nó thường xuất hiện trên các bảng thông báo, nội quy. Dịch: \"[Bảng thông báo trung tâm thể thao] Các dụng cụ tập luyện sau khi sử dụng xong bắt buộc phải được dọn dẹp trả về chỗ cũ.\""},{"label":"D","text":"べき","isCorrect":false,"rationale":"'べき' là lời khuyên 'nên làm gì', không mang tính chất mệnh lệnh, quy chế bắt buộc nghiêm ngặt viết trên văn bản thông báo như cấu trúc 'こと'."}]},{"question":"災害時（　　）地域の協力は、被害を減らすために非常に重要だ。","hint":"Cấu trúc bổ nghĩa trực tiếp cho danh từ phía sau, diễn tả bối cảnh, thời điểm.","options":[{"label":"A","text":"における","isCorrect":true,"rationale":"Cấu trúc 'N1 + における + N2' (tại, ở, trong bối cảnh) dùng để bổ nghĩa trực tiếp cho danh từ N2 phía sau. Dịch: \"Sự hợp tác của khu vực trong lúc xảy ra thảm họa (災害時) là vô cùng quan trọng để giảm thiểu thiệt hại.\""},{"label":"B","text":"において","isCorrect":false,"rationale":"Cấu trúc 'N + において' cũng chỉ bối cảnh, lĩnh vực, nhưng nó bổ nghĩa cho động từ hoặc cả cụm câu phía sau, không đứng trực tiếp trước một danh từ (地域の協力) để bổ nghĩa cho nó."},{"label":"C","text":"にとって","isCorrect":false,"rationale":"'にとって' đi với danh từ chỉ người hoặc tổ chức để đưa ra quan điểm/nhận xét. Không đi kèm với danh từ chỉ thời điểm sự việc (災害時) theo cách này."},{"label":"D","text":"に沿った","isCorrect":false,"rationale":"'に沿った' mang nghĩa 'men theo / tuân theo (kế hoạch, phương châm)', không hợp ngữ nghĩa chỉ bối cảnh thời gian."}]},{"question":"テレビの動物番組を見たの（　　）、将来は獣医（動物の医者）になりたいと思うようになった。","hint":"Cấu trúc mang nghĩa 'từ cơ duyên / nhờ việc... mà bắt đầu'.","options":[{"label":"A","text":"に限って","isCorrect":false,"rationale":"'～に限って' mang nghĩa 'chỉ riêng / đúng lúc', không dùng để chỉ nguyên nhân hay cơ duyên dẫn đến một sự thay đổi trong tương lai."},{"label":"B","text":"がきっかけで","isCorrect":true,"rationale":"Cấu trúc 'N + がきっかけで' mang nghĩa 'từ cơ duyên / nhờ việc... mà bắt đầu'. Dịch: \"Từ việc xem một chương trình động vật (動物番組) trên tivi mà tôi bắt đầu muốn trở thành bác sĩ thú y trong tương lai.\""},{"label":"C","text":"を最後にして","isCorrect":false,"rationale":"Không có cấu trúc '～を最後にして' mang nghĩa nguyên nhân/cơ duyên trong trường hợp này."},{"label":"D","text":"次第で","isCorrect":false,"rationale":"'次第で' mang nghĩa 'tùy thuộc vào...', hoặc 'ngay sau khi...' (nếu ghép sau V-masu bỏ masu). Không ghép với danh từ hóa hành động quá khứ (見たの) theo ý nghĩa nguyên nhân khơi mào."}]},{"question":"このビルは、大きな地震が起きると、エレベーターが自動的に止まる（　　）。","hint":"Cấu trúc diễn tả một cơ chế, hệ thống được lập trình/thiết kế sẵn.","options":[{"label":"A","text":"ようになっています","isCorrect":true,"rationale":"Cấu trúc 'V-る / V-ない + ようになっている' diễn tả một cơ chế, hệ thống được lập trình/thiết kế sẵn. Dịch: \"Tòa nhà này được thiết kế sao cho khi có động đất lớn xảy ra, thang máy sẽ tự động dừng lại.\""},{"label":"B","text":"ことになっています","isCorrect":false,"rationale":"'ことになっている' dùng để nói về quy định, tập quán hoặc nội quy áp dụng cho con người/xã hội, không dùng cho cơ chế vận hành tự động của máy móc/thang máy."},{"label":"C","text":"はずがありません","isCorrect":false,"rationale":"'はずがない' (tuyệt đối không thể) biểu thị sự phủ định chủ quan mạnh mẽ của người nói, không dùng để thuyết minh khách quan về tính năng của hệ thống."},{"label":"D","text":"わけがありません","isCorrect":false,"rationale":"Mang ý nghĩa tương tự 'はずがない', không phù hợp với văn cảnh mô tả cơ chế hệ thống bảo vệ của tòa nhà."}]},{"question":"この特別料金は、国内に在住している方（　　）、ご利用いただけます。","hint":"Cấu trúc mang nghĩa 'chỉ giới hạn dành cho...'.","options":[{"label":"A","text":"に限り","isCorrect":true,"rationale":"Cấu trúc 'N + に限り' mang nghĩa 'chỉ giới hạn dành cho...'. Câu này mang ý nghĩa thông báo ưu đãi: \"Mức phí đặc biệt (特別料金) này chỉ giới hạn dành cho những người đang sinh sống (在住) ở trong nước (国内).\""},{"label":"B","text":"にとって","isCorrect":false,"rationale":"'N + ににとって' mang nghĩa 'đối với...', dùng để đưa ra đánh giá từ lập trường của ai đó, không dùng để đưa ra giới hạn đối tượng được hưởng dịch vụ."},{"label":"C","text":"にかかわらず","isCorrect":false,"rationale":"'にかかわらず' mang nghĩa 'bất kể / không phân biệt', đi ngược lại hoàn toàn với ý nghĩa \"giới hạn đối tượng\" của câu."},{"label":"D","text":"において","isCorrect":false,"rationale":"'において' chỉ địa điểm, bối cảnh diễn ra hành động, không dùng để khoanh vùng đối tượng khách hàng."}]},{"question":"外国語の勉強は、時間を費やせ（　　）費やす（　　）、上達します。","hint":"Cấu trúc diễn tả mức độ tăng tiến đồng đều (càng... càng...).","options":[{"label":"A","text":"ば／ほど","isCorrect":true,"rationale":"Cấu trúc '（～ば）～ほど' mang nghĩa 'càng... càng...'. Câu này có nghĩa: \"Việc học ngoại ngữ thì thời gian càng tiêu tốn/dành ra (費やす) nhiều sẽ càng tiến bộ (上達する).\""},{"label":"B","text":"と／だけ","isCorrect":false,"rationale":"Không có cấu trúc '～と～だけ' để chỉ mức độ tăng tiến tương đương."},{"label":"C","text":"たら／まで","isCorrect":false,"rationale":"Sai hoàn toàn về mặt ghép cặp ngữ pháp. 'たら' là điều kiện, 'まで' là điểm giới hạn."},{"label":"D","text":"ても／くらい","isCorrect":false,"rationale":"'ても' (cho dù) không kết hợp với 'くらい' (đến mức) để biểu thị sự tăng tiến \"càng... càng...\"."}]},{"question":"毎日、日本語の放送を聞く（　　）、自然な発音が身につきます。","hint":"Cấu trúc mang nghĩa 'bằng cách / thông qua việc...'.","options":[{"label":"A","text":"ことで","isCorrect":true,"rationale":"Cấu trúc 'V-る + ことで' mang nghĩa 'bằng cách / thông qua việc...'. Dùng để chỉ phương pháp để đạt được kết quả tích cực ở vế sau. Dịch: \"Thông qua việc nghe các chương trình phát sóng (放送) tiếng Nhật mỗi ngày, bạn sẽ trang bị được phát âm tự nhiên.\""},{"label":"B","text":"こと","isCorrect":false,"rationale":"'～こと' đứng cuối câu dùng để ra lệnh, quy định, không tạo thành cấu trúc chỉ phương pháp, cách thức."},{"label":"C","text":"ことには","isCorrect":false,"rationale":"Cấu trúc 'ことには' phải đi kèm với động từ thể phủ định (V-ない) mang nghĩa 'nếu không... thì không thể', không dùng ở câu khẳng định."},{"label":"D","text":"なんて","isCorrect":false,"rationale":"'なんて' dùng để bộc lộ cảm xúc ngạc nhiên, coi thường, không dùng để diễn đạt phương pháp học tập."}]},{"question":"今回の旅行は、参加人数の多い少ない（　　）、出発することが決定しています。","hint":"Cấu trúc mang nghĩa 'bất kể / không liên quan đến'.","options":[{"label":"A","text":"にかかわらず","isCorrect":true,"rationale":"Cấu trúc 'N + にかかわらず' mang nghĩa 'bất kể / không liên quan đến'. Dịch: \"Chuyến du lịch lần này đã được quyết định (決定) là sẽ xuất phát bất kể số lượng người tham gia (参加人数) nhiều hay ít.\""},{"label":"B","text":"に限り","isCorrect":false,"rationale":"Mang nghĩa 'chỉ giới hạn cho...', không thể đi sau cụm từ mang tính đối lập (nhiều hay ít) để tạo câu quyết định không phụ thuộc vào điều kiện."},{"label":"C","text":"において","isCorrect":false,"rationale":"'N + において' mang nghĩa 'tại / ở', chỉ dùng cho địa điểm hoặc bối cảnh."},{"label":"D","text":"にとって","isCorrect":false,"rationale":"'にとって' mang nghĩa 'đối với (lập trường ai đó)', không dùng trong câu thông báo không phụ thuộc điều kiện."}]},{"question":"今年の梅雨は、気象庁の予想（　　）大雨の日が多い。","hint":"Cấu trúc mang nghĩa 'theo đúng như / hệt như...'.","options":[{"label":"A","text":"どおりに","isCorrect":true,"rationale":"Cấu trúc 'N + どおりに' mang nghĩa 'theo đúng như / hệt như...'. Khi ghép trực tiếp với danh từ không có trợ từ 'の', ta biến âm thành 'どおりに'. Dịch: \"Mùa mưa (梅雨) năm nay có nhiều ngày mưa to đúng như dự báo (予想) của Cục khí tượng (気象庁).\""},{"label":"B","text":"とおりに","isCorrect":false,"rationale":"Nếu dùng 'とおりに', bắt buộc phải có trợ từ 'の' đứng trước (予想のとおりに)."},{"label":"C","text":"次第に","isCorrect":false,"rationale":"'次第に' là phó từ mang nghĩa 'dần dần', hoàn toàn không hợp với ý nghĩa \"đúng như dự báo\"."},{"label":"D","text":"に沿って","isCorrect":false,"rationale":"'に沿って' có nghĩa 'men theo / tuân theo (kế hoạch, quy tắc)', nhưng với \"dự báo, suy nghĩ, dự định\" thì 'どおりに' là ngữ pháp chuẩn xác và tự nhiên nhất."}]},{"question":"沖縄に台風が接近している（　　）、明日の飛行機は欠航になるそうだ。","hint":"Cấu trúc dùng để nêu lý do một cách không chắc chắn qua lời đồn, bản tin.","options":[{"label":"A","text":"とかで","isCorrect":true,"rationale":"Cấu trúc '～とかで' mang nghĩa 'nghe nói là vì... / hình như là do...'. Dùng để nêu lý do một cách không chắc chắn qua lời đồn, bản tin hoặc nghe kể lại. Dịch: \"Nghe nói là do bão đang tiếp cận (接近) Okinawa nên máy bay ngày mai sẽ bị hủy chuyến (欠航).\""},{"label":"B","text":"ことで","isCorrect":false,"rationale":"'ことで' dùng để chỉ phương pháp hoặc nguyên nhân, nhưng không mang sắc thái \"nghe kể lại\" khớp với đuôi câu 'そうだ'."},{"label":"C","text":"において","isCorrect":false,"rationale":"'において' chỉ địa điểm, bối cảnh diễn ra hành động, không dùng để chỉ lý do, nguyên nhân."},{"label":"D","text":"なんて","isCorrect":false,"rationale":"'なんて' bộc lộ sự ngạc nhiên, chê bai, không dùng để truyền đạt lại thông tin khách quan về thời tiết."}]},{"question":"【寮の掲示板】 夜10時以降は、大きな音を立てない（　　）。","hint":"Cấu trúc dùng cuối câu để biểu đạt mệnh lệnh, quy định trên các bảng thông báo.","options":[{"label":"A","text":"こと","isCorrect":true,"rationale":"Cấu trúc 'V-る/V-ない + こと' dùng cuối câu để biểu đạt mệnh lệnh, quy định trên các bảng thông báo, nội quy. Dịch: \"[Bảng thông báo của ký túc xá] Sau 10 giờ đêm (以降), không được làm ồn / gây ra tiếng động lớn (音を立てる).\""},{"label":"B","text":"はず","isCorrect":false,"rationale":"'はず' diễn tả sự phỏng đoán chắc chắn (chắc chắn là...), không dùng cho các quy định, nội quy mang tính bắt buộc."},{"label":"C","text":"わけ","isCorrect":false,"rationale":"'わけ' thường dùng để giải thích lý do, nguồn cơn sự việc, không dùng để viết bảng nội quy."},{"label":"D","text":"でしょう","isCorrect":false,"rationale":"'でしょう' là phỏng đoán 'có lẽ', quá nhẹ nhàng, không mang tính chất răn đe của nội quy."}]},{"question":"現代社会（　　）情報の役割は非常に大きいです。","hint":"Cấu trúc bổ nghĩa trực tiếp cho danh từ phía sau, diễn tả bối cảnh, thời đại.","options":[{"label":"A","text":"における","isCorrect":true,"rationale":"Cấu trúc 'N1 + における + N2' mang nghĩa 'tại, ở, trong (bối cảnh, thời đại)'. Nó bổ nghĩa trực tiếp cho danh từ N2 phía sau. Dịch: \"Vai trò (役割) của thông tin (情報) trong xã hội hiện đại (現代社会) là vô cùng lớn.\""},{"label":"B","text":"において","isCorrect":false,"rationale":"'において' cũng chỉ bối cảnh, địa điểm nhưng dùng để bổ nghĩa cho động từ hoặc cả cụm câu phía sau, không đứng trực tiếp trước danh từ (情報の役割) để bổ nghĩa cho nó."},{"label":"C","text":"にとって","isCorrect":false,"rationale":"'にとって' (đối với) dùng để đưa ra quan điểm từ lập trường của một người/nhóm người, không kết hợp với từ chỉ bối cảnh/ thời đại (現代社会) theo cách này."},{"label":"D","text":"にかかわらず","isCorrect":false,"rationale":"'にかかわらず' mang nghĩa 'bất kể', hoàn toàn sai về mặt ý nghĩa."}]},{"question":"買ったばかりの新しい機械をすぐに壊してしまう（　　）、本当に残念だ。","hint":"Cấu trúc dùng để bộc lộ sự kinh ngạc, coi thường, hoặc tiếc nuối trước một sự việc.","options":[{"label":"A","text":"なんて","isCorrect":true,"rationale":"Cấu trúc '～なんて' dùng để bộc lộ sự kinh ngạc, coi thường, hoặc tiếc nuối trước một sự việc. Dịch: \"Cái việc làm hỏng ngay chiếc máy (機械) mới vừa mua xong, thật sự là đáng tiếc (残念).\""},{"label":"B","text":"に限り","isCorrect":false,"rationale":"'に限り' nghĩa là 'chỉ giới hạn cho...', không dùng sau một cụm động từ để diễn tả cảm xúc cá nhân."},{"label":"C","text":"ことで","isCorrect":false,"rationale":"'ことで' chỉ phương pháp/nguyên nhân (bằng cách / vì). Câu này nhằm đánh giá sự việc, bộc lộ sự tiếc nuối chứ không chỉ phương pháp."},{"label":"D","text":"どおりに","isCorrect":false,"rationale":"'どおりに' (làm theo đúng như) không phù hợp với cấu trúc câu cảm thán."}]},{"question":"普段は優しい先生ですが、約束を守らないと厳しく怒る（　　）。","hint":"Cấu trúc mang nghĩa 'thỉnh thoảng cũng có lúc...'.","options":[{"label":"A","text":"こともある","isCorrect":true,"rationale":"Cấu trúc 'V-る + こともある' mang nghĩa 'thỉnh thoảng cũng có lúc...'. Dịch: \"Bình thường (普段) thầy là người hiền lành, nhưng cũng có lúc thầy sẽ tức giận (怒る) nghiêm khắc nếu không giữ lời hứa.\""},{"label":"B","text":"ことになっています","isCorrect":false,"rationale":"Cấu trúc này dùng để chỉ một quy tắc, tập quán hoặc nội quy chung chung, không dùng để nói về nét tính cách, phản ứng của một cá nhân cụ thể."},{"label":"C","text":"ようになっています","isCorrect":false,"rationale":"Dùng để chỉ cơ chế vận hành của máy móc/hệ thống tự động, không áp dụng cho cảm xúc của con người."},{"label":"D","text":"はずがありません","isCorrect":false,"rationale":"'はずがない' (chắc chắn không thể) là lời phủ định mạnh mẽ, đi ngược lại với logic \"vì hiền lành nên đôi khi vẫn nổi giận nếu làm sai\"."}]}];
+const tr = {"questionLabel":"Câu hỏi","correct":"Đúng!","incorrect":"Sai","back":"← Quay lại","backToIndex":"← Quay lại trang chủ","next":"Câu hỏi tiếp theo →","seeResults":"Xem kết quả","complete":"Hoàn thành bài kiểm tra!","scoreText":"Bạn trả lời đúng {correct} trên {total} câu","tryAgain":"Thử lại","rightAnswer":"Đáp án đúng","notQuite":"Chưa đúng"};
+let currentQ = 0, correctCount = 0;
+const selectedAnswers = new Array(quizData.length).fill(null);
+
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function shuffleOptions() {
+  document.querySelectorAll('.options').forEach(optionsContainer => {
+    const wrappers = Array.from(optionsContainer.querySelectorAll('.option-wrapper'));
+    const shuffled = shuffleArray(wrappers);
+    shuffled.forEach(wrapper => optionsContainer.appendChild(wrapper));
+  });
+}
+
+function shuffleQuestions() {
+  const quizContainer = document.getElementById('quiz-container');
+  if (!quizContainer) return;
+
+  const questions = Array.from(quizContainer.querySelectorAll('.question'));
+  const shuffled = shuffleArray(questions);
+  shuffled.forEach(question => quizContainer.appendChild(question));
+}
+
+function renumberQuestions() {
+  document.querySelectorAll('.question').forEach((questionEl, index) => {
+    const numberEl = questionEl.querySelector('.q-number');
+    if (numberEl) {
+      numberEl.textContent = tr.questionLabel + ' ' + (index + 1);
+    }
+  });
+}
+
+function init() {
+  shuffleQuestions();
+  renumberQuestions();
+  shuffleOptions();
+  showQuestion(0);
+  document.querySelectorAll('.option').forEach(opt => opt.addEventListener('click', () => selectOption(opt)));
+  document.querySelectorAll('.next-btn').forEach(btn => btn.addEventListener('click', nextQuestion));
+  document.querySelectorAll('.prev-btn').forEach(btn => btn.addEventListener('click', prevQuestion));
+}
+
+function selectOption(opt) {
+  if (selectedAnswers[currentQ] !== null || opt.classList.contains('disabled')) return;
+  const q = opt.closest('.question');
+  const options = q.querySelectorAll('.option');
+  const isCorrect = opt.dataset.correct === 'true';
+  selectedAnswers[currentQ] = opt.dataset.label || '';
+  
+  // Mark all options as disabled
+  options.forEach(o => o.classList.add('disabled'));
+  
+  // Style selected option
+  opt.classList.add('selected', isCorrect ? 'correct' : 'incorrect');
+  
+  // Show correct answer if wrong
+  if (!isCorrect) {
+    const correctOpt = [...options].find(o => o.dataset.correct === 'true');
+    if (correctOpt) correctOpt.classList.add('show-correct');
+  }
+  
+  if (isCorrect) correctCount++;
+  
+  // Show feedback for ALL options that have rationale
+  options.forEach(o => {
+    const wrapper = o.closest('.option-wrapper');
+    const feedback = wrapper.querySelector('.option-feedback');
+    const rationale = o.dataset.rationale;
+    const isThisCorrect = o.dataset.correct === 'true';
+    
+    if (rationale && rationale.trim()) {
+      feedback.classList.remove('hidden');
+      feedback.classList.add(isThisCorrect ? 'correct-feedback' : 'incorrect-feedback');
+      
+      const statusEl = feedback.querySelector('.feedback-status');
+      statusEl.className = 'feedback-status ' + (isThisCorrect ? 'correct' : 'incorrect');
+      statusEl.innerHTML = isThisCorrect 
+        ? '✓ ' + tr.rightAnswer
+        : '✗ ' + tr.notQuite;
+    }
+  });
+  
+  updateQuestionNav();
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= quizData.length) { showResults(); return; }
+  showQuestion(currentQ);
+}
+
+function prevQuestion() {
+  if (currentQ === 0) return;
+  currentQ--;
+  showQuestion(currentQ);
+}
+
+function showQuestion(index) {
+  document.querySelectorAll('.question').forEach((q, i) => q.classList.toggle('active', i === index));
+  updateProgress();
+  updateQuestionNav();
+}
+
+function updateQuestionNav() {
+  const q = document.querySelector('.question.active');
+  if (!q) return;
+
+  const prevBtn = q.querySelector('.prev-btn');
+  const nextBtn = q.querySelector('.next-btn');
+  const hasAnswered = selectedAnswers[currentQ] !== null;
+
+  prevBtn.classList.toggle('hidden', currentQ === 0);
+  nextBtn.classList.toggle('hidden', !hasAnswered);
+  nextBtn.textContent = currentQ === quizData.length - 1 ? tr.seeResults : tr.next;
+}
+
+function updateProgress() {
+  document.querySelector('.progress-fill').style.width = (currentQ / quizData.length * 100) + '%';
+}
+
+function showResults() {
+  document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+  document.getElementById('results').classList.add('active');
+  const pct = Math.round((correctCount / quizData.length) * 100);
+  document.getElementById('score').textContent = pct + '%';
+  document.getElementById('score-text').textContent = tr.scoreText.replace('{correct}', correctCount).replace('{total}', quizData.length);
+  document.querySelector('.progress-fill').style.width = '100%';
+}
+
+function restart() {
+  currentQ = 0;
+  correctCount = 0;
+  selectedAnswers.fill(null);
+  document.getElementById('results').classList.remove('active');
+  document.querySelectorAll('.question').forEach((q, i) => {
+    q.classList.toggle('active', i === 0);
+    q.querySelectorAll('.option').forEach(o => o.classList.remove('selected', 'correct', 'incorrect', 'disabled', 'show-correct'));
+    q.querySelectorAll('.option-feedback').forEach(f => {
+      f.classList.add('hidden');
+      f.classList.remove('correct-feedback', 'incorrect-feedback');
+    });
+    const btn = q.querySelector('.next-btn');
+    btn.classList.add('hidden');
+    btn.textContent = tr.next;
+    const prevBtn = q.querySelector('.prev-btn');
+    prevBtn.classList.toggle('hidden', i === 0);
+  });
+  showQuestion(0);
+}
+
+init();
+</script>
+</body>
+</html>

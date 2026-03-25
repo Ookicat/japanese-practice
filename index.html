@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Practice Exam Bookshelf</title>
+  <style>
+    :root {
+      --bg-top: #f6f2e8;
+      --bg-bottom: #e8dcc4;
+      --ink: #2d2116;
+      --muted: #6a5743;
+      --shelf-wood: #8a5a3b;
+      --shelf-edge: #5e3b25;
+      --card: #fffaf0;
+      --line: rgba(45, 33, 22, 0.12);
+      --accent: #b3462b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at 20% 10%, #fff7e6 0%, transparent 45%),
+                  linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      margin-bottom: 18px;
+      padding: 20px 22px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 250, 240, 0.88);
+      backdrop-filter: blur(3px);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(24px, 3.4vw, 36px);
+      letter-spacing: 0.3px;
+      font-weight: 800;
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .status {
+      margin: 14px 0 20px;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 20px;
+    }
+
+    .shelf-group {
+      margin: 24px 0 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 250, 240, 0.82);
+      overflow: hidden;
+    }
+
+    .group-summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      font-size: 17px;
+      font-weight: 700;
+      color: #3b2a1e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      background: linear-gradient(180deg, rgba(255, 247, 230, 0.92), rgba(245, 234, 212, 0.92));
+      border-bottom: 1px solid var(--line);
+    }
+
+    .group-summary::-webkit-details-marker { display: none; }
+
+    .group-summary::before {
+      content: "▾";
+      margin-right: 10px;
+      color: var(--accent);
+      transition: transform 0.18s ease;
+      font-size: 15px;
+    }
+
+    .shelf-group:not([open]) .group-summary::before {
+      transform: rotate(-90deg);
+    }
+
+    .group-title {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 8px;
+    }
+
+    .group-count {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .group-content {
+      padding: 10px;
+    }
+
+    .shelf {
+      position: relative;
+      background: linear-gradient(180deg, #9c6a47, var(--shelf-wood));
+      border: 1px solid var(--shelf-edge);
+      border-radius: 12px;
+      padding: 14px 12px 20px;
+      box-shadow: 0 10px 24px rgba(60, 35, 20, 0.18);
+    }
+
+    .shelf::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      height: 10px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.16), rgba(0,0,0,0.26));
+      filter: blur(1px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .book-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .book {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 110px;
+      padding: 14px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #2a1f17;
+      background: linear-gradient(160deg, #fffdf8 0%, #f5ead4 100%);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.12);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+
+    .book:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.18);
+      border-color: rgba(179, 70, 43, 0.45);
+    }
+
+    .book-title {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .book-file {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      word-break: break-all;
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 18px;
+      color: var(--muted);
+      background: rgba(255, 250, 240, 0.75);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Đề ôn thi JPD316</h1>
+      <p>Trang này tự gom các đề HTML theo nhóm thư mục, và hiển thị tên đề dựa trên thẻ h1 trong từng file.</p>
+    </section>
+
+    <div class="status" id="status">Đang quét đề kiểm tra...</div>
+    <main id="bookshelf"></main>
+  </div>
+
+  <script src="bookshelf.manifest.js"></script>
+  <script>
+    const manifestPath = "bookshelf.json";
+
+    const statusEl = document.getElementById("status");
+    const shelfEl = document.getElementById("bookshelf");
+    function normalizeRelPath(path) {
+      return path.replace(/\\\\/g, "/").replace(/^\.\//, "");
+    }
+
+    function groupNameFromPath(path) {
+      const parts = normalizeRelPath(path).split("/");
+      return parts.length > 1 ? parts[0] : "Root";
+    }
+
+    function fileNameFromPath(path) {
+      const clean = normalizeRelPath(path);
+      const parts = clean.split("/");
+      return parts[parts.length - 1] || clean;
+    }
+
+    function normalizePaper(paper) {
+      if (!paper || typeof paper !== "object") return null;
+
+      const path = typeof paper.path === "string" ? normalizeRelPath(paper.path) : "";
+      if (!path || !path.toLowerCase().endsWith(".html") || path === "index.html") return null;
+
+      const title = typeof paper.title === "string" && paper.title.trim()
+        ? paper.title.trim()
+        : fileNameFromPath(path);
+
+      const group = typeof paper.group === "string" && paper.group.trim()
+        ? paper.group.trim()
+        : groupNameFromPath(path);
+
+      const fileName = typeof paper.fileName === "string" && paper.fileName.trim()
+        ? paper.fileName.trim()
+        : fileNameFromPath(path);
+
+      return { title, path, group, fileName };
+    }
+
+    async function loadManifest() {
+      if (window.location.protocol === "file:") {
+        if (Array.isArray(window.BOOKSHELF_MANIFEST)) {
+          return normalizeManifest(window.BOOKSHELF_MANIFEST);
+        }
+        return null;
+      }
+
+      try {
+        const res = await fetch(encodeURI(manifestPath), { cache: "no-store" });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return normalizeManifest(data);
+      } catch (_) {
+        if (Array.isArray(window.BOOKSHELF_MANIFEST)) {
+          return normalizeManifest(window.BOOKSHELF_MANIFEST);
+        }
+        return null;
+      }
+    }
+
+    function normalizeManifest(data) {
+      if (!Array.isArray(data)) return null;
+
+      const seen = new Set();
+      const papers = [];
+
+      for (const item of data) {
+        const normalized = normalizePaper(item);
+        if (!normalized) continue;
+
+        const key = normalized.path.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        papers.push(normalized);
+      }
+
+      return papers;
+    }
+
+    function buildShelves(papers) {
+      shelfEl.innerHTML = "";
+
+      if (!papers.length) {
+        shelfEl.innerHTML = '<div class="empty">Khong tim thay file de thi HTML nao.</div>';
+        return;
+      }
+
+      const groups = new Map();
+      for (const paper of papers) {
+        const group = paper.group;
+        if (!groups.has(group)) groups.set(group, []);
+        groups.get(group).push(paper);
+      }
+
+      const sortedGroups = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b, "vi"));
+
+      for (const group of sortedGroups) {
+        const section = document.createElement("details");
+        section.className = "shelf-group";
+        section.open = true;
+
+        const summary = document.createElement("summary");
+        summary.className = "group-summary";
+
+        const title = document.createElement("div");
+        title.className = "group-title";
+        title.textContent = group;
+
+        const count = document.createElement("div");
+        count.className = "group-count";
+        count.textContent = `${groups.get(group).length} đề`;
+
+        summary.appendChild(title);
+        summary.appendChild(count);
+
+        const shelf = document.createElement("div");
+        shelf.className = "shelf";
+
+        const content = document.createElement("div");
+        content.className = "group-content";
+
+        const row = document.createElement("div");
+        row.className = "book-row";
+
+        const books = groups.get(group).sort((a, b) => a.title.localeCompare(b.title, "vi"));
+
+        for (const book of books) {
+          const a = document.createElement("a");
+          a.className = "book";
+          a.href = encodeURI(book.path);
+
+          const t = document.createElement("div");
+          t.className = "book-title";
+          t.textContent = book.title;
+
+          const f = document.createElement("div");
+          f.className = "book-file";
+          f.textContent = book.fileName;
+
+          a.appendChild(t);
+          a.appendChild(f);
+          row.appendChild(a);
+        }
+
+        shelf.appendChild(row);
+        content.appendChild(shelf);
+        section.appendChild(summary);
+        section.appendChild(content);
+        shelfEl.appendChild(section);
+      }
+    }
+
+    async function loadBookshelf() {
+      statusEl.textContent = "Dang tai danh sach de...";
+
+      const papers = await loadManifest();
+
+      if (!papers || !papers.length) {
+        buildShelves([]);
+        statusEl.textContent = window.location.protocol === "file:"
+          ? "Khong doc duoc du lieu khi mo bang file://. Hay kiem tra bookshelf.manifest.js hoac chay local server."
+          : "Khong doc duoc danh sach de. Hay kiem tra bookshelf.json.";
+        return;
+      }
+
+      const sorted = papers.slice().sort((a, b) => a.title.localeCompare(b.title, "vi"));
+      buildShelves(sorted);
+      statusEl.textContent = window.location.protocol === "file:"
+        ? `Đã tải ${sorted.length} đề.`
+        : `Đã tải ${sorted.length} đề.`;
+    }
+
+    loadBookshelf();
+  </script>
+</body>
+</html>

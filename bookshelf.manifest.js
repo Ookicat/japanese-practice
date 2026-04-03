@@ -6,6 +6,12 @@ window.BOOKSHELF_MANIFEST = [
     "fileName": "sp25-interactive.html"
   },
   {
+    "title": "SP26",
+    "path": "Final Exam/sp26-interactive.html",
+    "group": "Final Exam",
+    "fileName": "sp26-interactive.html"
+  },
+  {
     "title": "SU25",
     "path": "Final Exam/su25-interactive.html",
     "group": "Final Exam",

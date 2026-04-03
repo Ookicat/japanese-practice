@@ -1,0 +1,3009 @@
+<!DOCTYPE html>
+<html lang="vi" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP26</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh; padding: 20px; color: #333;
+}
+.container { max-width: 700px; margin: 0 auto; }
+.container.with-picture { max-width: 1200px; }
+.content-row {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  justify-content: center;
+}
+.quiz-column {
+  width: 100%;
+  max-width: 700px;
+}
+.picture-column {
+  width: 100%;
+  max-width: 470px;
+  display: none;
+}
+.content-row.show-picture .picture-column { display: block; }
+@media (max-width: 1024px) {
+  .container.with-picture { max-width: 700px; }
+  .content-row { flex-direction: column; gap: 20px; align-items: center; }
+  .picture-column,
+  .content-row.show-picture .picture-column {
+    max-width: 700px;
+  }
+}
+.header { text-align: center; color: #fff; padding: 30px 20px; }
+.header-top { display: flex; justify-content: flex-start; margin-bottom: 12px; }
+.back-index-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.35);
+}
+.back-index-link:hover { background: rgba(255,255,255,0.24); }
+.header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+.header .meta { font-size: 14px; opacity: 0.9; }
+.progress-bar { background: rgba(255,255,255,0.3); border-radius: 10px; height: 8px; margin: 20px 0; overflow: hidden; }
+.progress-fill { background: #fff; height: 100%; width: 0%; transition: width 0.4s ease; border-radius: 10px; }
+.question { background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: none; }
+.question.active { display: block; }
+.q-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px; color: #888; }
+.q-number { font-weight: 600; color: #667eea; }
+.q-text { font-size: 18px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; color: #222; }
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option-wrapper { display: flex; flex-direction: column; }
+.option {
+  display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px;
+  border: 2px solid #e8e8e8; border-radius: 12px; background: #fafafa;
+  cursor: pointer; transition: all 0.2s; text-align: left; font-size: 15px; width: 100%;
+}
+[dir="rtl"] .option { text-align: right; flex-direction: row-reverse; }
+.option:hover:not(.disabled) { border-color: #667eea; background: #f5f3ff; }
+.option.selected { border-color: #667eea; background: #ede9fe; }
+.option.correct { border-color: #22c55e; background: #dcfce7; }
+.option.incorrect { border-color: #ef4444; background: #fee2e2; }
+.option.disabled { cursor: default; }
+.option.show-correct { border-color: #22c55e; background: #dcfce7; }
+.opt-label {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%; background: #e8e8e8;
+  font-weight: 700; font-size: 14px; flex-shrink: 0;
+}
+.option.selected .opt-label { background: #667eea; color: #fff; }
+.option.correct .opt-label { background: #22c55e; color: #fff; }
+.option.incorrect .opt-label { background: #ef4444; color: #fff; }
+.option.show-correct .opt-label { background: #22c55e; color: #fff; }
+.opt-text { padding-top: 5px; line-height: 1.5; }
+
+/* Individual option feedback */
+.option-feedback {
+  margin: 8px 0 4px 46px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+[dir="rtl"] .option-feedback { margin-left: 0; margin-right: 46px; }
+.option-feedback.correct-feedback {
+  background: #dcfce7;
+  border-left: 3px solid #22c55e;
+}
+.option-feedback.incorrect-feedback {
+  background: #fef3f2;
+  border-left: 3px solid #fca5a5;
+}
+[dir="rtl"] .option-feedback.correct-feedback,
+[dir="rtl"] .option-feedback.incorrect-feedback {
+  border-left: none;
+  border-right: 3px solid;
+}
+[dir="rtl"] .option-feedback.correct-feedback { border-right-color: #22c55e; }
+[dir="rtl"] .option-feedback.incorrect-feedback { border-right-color: #fca5a5; }
+.feedback-status {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.feedback-status.correct { color: #166534; }
+.feedback-status.incorrect { color: #991b1b; }
+.feedback-rationale { color: #444; }
+
+/* Hint box */
+.hint-box {
+  margin: 12px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+}
+.hint-toggle {
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hint-toggle:hover { background: #fef3c7; }
+.hint-content {
+  padding: 0 16px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s, padding 0.3s;
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.5;
+}
+.hint-box.show .hint-content {
+  padding: 0 16px 12px;
+  max-height: 200px;
+}
+
+.question-nav {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+.prev-btn,
+.next-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.prev-btn {
+  background: #e5e7eb;
+  color: #374151;
+}
+.prev-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(17,24,39,0.12); }
+.next-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none;
+}
+.next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
+.hidden { display: none !important; }
+.results { background: #fff; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: none; }
+.results.active { display: block; }
+.results h2 { font-size: 28px; margin-bottom: 10px; color: #333; }
+.results .score { font-size: 64px; font-weight: 700; color: #667eea; margin: 20px 0; }
+.results .score-text { font-size: 18px; color: #666; margin-bottom: 30px; }
+.restart-btn {
+  padding: 14px 40px; background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;
+}
+
+/* Math CSS */
+.math, .math-block { font-family: "Cambria Math", "Times New Roman", Times, serif; font-style: italic; }
+.math-block { display: block; text-align: center; margin: 10px 0; font-size: 110%; }
+.frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 3px; font-size: 0.9em; }
+.frac-num { border-bottom: 1px solid currentColor; padding: 0 4px 2px; line-height: 1.2; }
+.frac-den { padding: 2px 4px 0; line-height: 1.2; }
+.sqrt { white-space: nowrap; }
+.sqrt-content { border-top: 1px solid currentColor; padding: 0 3px; margin-left: 2px; }
+sup, sub { font-size: 0.75em; }
+sup { vertical-align: super; }
+sub { vertical-align: sub; }
+
+/* Picture section */
+.picture-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+.picture-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+  border-radius: 12px;
+  border: 2px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #888;
+  text-align: center;
+  padding: 20px;
+  overflow: hidden;
+}
+.picture-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: zoom-in;
+}
+
+/* Image Modal */
+.image-modal {
+  display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 20px;
+}
+.image-modal.active { display: flex; }
+.image-modal img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+.image-modal-close { position: absolute; top: 20px; right: 30px; font-size: 40px; color: #fff; cursor: pointer; font-weight: bold; background: none; border: none; }
+
+</style>
+</head>
+<body>
+<div class="container with-picture">
+  <div class="header">
+    <div class="header-top">
+      <a class="back-index-link" href="../index.html">← Quay lại trang chủ</a>
+    </div>
+    <h1>SP26</h1>
+    <div class="meta">43 câu hỏi</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+  <div class="content-row" id="content-row">
+    <div class="quiz-column">
+    <div id="quiz-container">
+        <div class="question" data-index="0" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 1</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">地震（じしん）のときは、（　）、落ち着いて行動しましょう。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="「あわてないで」(đừng hoảng hốt) đi kèm với 「落ち着いて」(bình tĩnh) tạo thành lời khuyên hợp lý khi có động đất: đừng hoảng hốt mà hãy hành động bình tĩnh.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">あわてないで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">「あわてないで」(đừng hoảng hốt) đi kèm với 「落ち着いて」(bình tĩnh) tạo thành lời khuyên hợp lý khi có động đất: đừng hoảng hốt mà hãy hành động bình tĩnh.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">こまらないで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">いそがないで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">はしらないで</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="1" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 2</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">子供を抱きしめて【安心感】をあたえる。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">やすころかん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">あんころかん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Cách đọc đúng của 安心感 (cảm giác an toàn/an tâm) là あんしんかん.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">あんしんかん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách đọc đúng của 安心感 (cảm giác an toàn/an tâm) là あんしんかん.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">やすしんかん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="2" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 3</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">今朝の天気予報（　）、今週はずっと晴れる（　）。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">によって・でしょう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">によると・みたそうだ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Cấu trúc ～によると...らしい dùng để truyền đạt lại thông tin nghe được từ một nguồn nào đó (theo như dự báo thời tiết thì có vẻ như...).">
+            <span class="opt-label">C</span>
+            <span class="opt-text">によると・らしい</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc ～によると...らしい dùng để truyền đạt lại thông tin nghe được từ một nguồn nào đó (theo như dự báo thời tiết thì có vẻ như...).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">によって・そう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="3" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 4</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">授業(じゅぎょう)が終わったら、みんなで急いで教室を出て行きますが、ワンさんは帰る準備をゆっくりしています。（　）人です。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">思いやりがある</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="「のんびりしている」diễn tả tính cách thong thả, ung dung, phù hợp với hành động chuẩn bị ra về một cách từ từ (ゆっくり) trong khi mọi người vội vã.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">のんびりしている</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">「のんびりしている」diễn tả tính cách thong thả, ung dung, phù hợp với hành động chuẩn bị ra về một cách từ từ (ゆっくり) trong khi mọi người vội vã.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">積極的(せっきょくてき)な</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">しっかりしている</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="4" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 5</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">最近、何だか（　）が出ない。どうしてだろう……。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">きぶん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">きもち</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">きょうみ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="「やる気が出る / 出ない」là cụm từ cố định mang nghĩa có/không có hứng thú, động lực làm việc.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">やるき</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">「やる気が出る / 出ない」là cụm từ cố định mang nghĩa có/không có hứng thú, động lực làm việc.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="5" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 6</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">水を飲まないで、1週間も生きられる（　）。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">ようになっている</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">かもしれない</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="「はずがない」mang nghĩa &quot;chắc chắn không thể nào&quot;, dùng để phủ định mạnh mẽ việc có thể sống 1 tuần mà không uống nước.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">はずがない</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">「はずがない」mang nghĩa &quot;chắc chắn không thể nào&quot;, dùng để phủ định mạnh mẽ việc có thể sống 1 tuần mà không uống nước.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">はずだ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="6" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 7</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">[芸能人(げいのうじん)の写真を見ながら]
+A：あー、かわいい。僕(ぼく)も（　）彼女(かのじょ)がほしいな。
+B：それは…ちょっと難(むずか)しいかも……。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">こんな</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">どんな</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Khi cả hai người cùng đang nhìn vào một bức ảnh (người/vật ở xa hoặc không thuộc sở hữu trực tiếp của ai), dùng「あんな」(như thế kia) là phù hợp nhất.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">あんな</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Khi cả hai người cùng đang nhìn vào một bức ảnh (người/vật ở xa hoặc không thuộc sở hữu trực tiếp của ai), dùng「あんな」(như thế kia) là phù hợp nhất.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">そんな</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="7" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 8</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">好きなドラマをDVDに【録画】する。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cách đọc đúng của 録画 (ghi hình) là ろくが.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">ろくが</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách đọc đúng của 録画 (ghi hình) là ろくが.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ろくかく</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ろくかい</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">ろくえ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="8" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 9</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">この弁当箱(べんとうばこ)なら、昼になってもご飯(はん)は（　）まま食べられます。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">あたたかな</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">あたたか</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">あたたかく</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Tính từ đuôi い giữ nguyên + まま mang nghĩa &quot;giữ nguyên trạng thái&quot; (giữ nguyên độ ấm nóng).">
+            <span class="opt-label">D</span>
+            <span class="opt-text">あたたかい</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Tính từ đuôi い giữ nguyên + まま mang nghĩa &quot;giữ nguyên trạng thái&quot; (giữ nguyên độ ấm nóng).</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="9" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 10</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">海外における日本のアニメの（　）は年々高まっている。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="評判 (ひょうばん - đánh giá, tiếng tăm).「評判が高まる」mang nghĩa là đánh giá, danh tiếng ngày càng tăng lên.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">ひょうばん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">評判 (ひょうばん - đánh giá, tiếng tăm).「評判が高まる」mang nghĩa là đánh giá, danh tiếng ngày càng tăng lên.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ていいん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ひょうじ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">せいかく</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="10" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 11</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">漢字を３５０字【覚えた】。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cách đọc đúng của 覚えた (đã nhớ/đã học thuộc) là おぼえた.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">おぼえた</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách đọc đúng của 覚えた (đã nhớ/đã học thuộc) là おぼえた.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">さとえた</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">さめえた</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">かくえた</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="11" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 12</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">試験の予定が（　）されて、来週の月曜日になります。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="変更 (へんこう - thay đổi).「予定が変更される」nghĩa là lịch trình được thay đổi.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">へんこう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">変更 (へんこう - thay đổi).「予定が変更される」nghĩa là lịch trình được thay đổi.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">へんそう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">へんじ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">へんかん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="12" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 13</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">店員：はい、「さくらカフェ」でございます。
+A：あのう、黒い財布を（　）ようなんですが、
+店員：あ、はい、お預(あず)かりしています。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">置いてしまった</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">忘れてしまう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">置いてしまう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Dùng V-てしまった để diễn tả sự tiếc nuối về một hành động lỡ xảy ra trong quá khứ (lỡ để quên).">
+            <span class="opt-label">D</span>
+            <span class="opt-text">忘れてしまった</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Dùng V-てしまった để diễn tả sự tiếc nuối về một hành động lỡ xảy ra trong quá khứ (lỡ để quên).</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="13" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 14</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">卒業式(しき)では写真をとったんでしょう。ぜひ、（　）ほしいです。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">見られて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">見ていて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">見て</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Cấu trúc V-てほしい dùng khi muốn người khác làm gì cho mình (muốn bạn cho tôi xem ảnh). 見せる là cho xem.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">見せて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc V-てほしい dùng khi muốn người khác làm gì cho mình (muốn bạn cho tôi xem ảnh). 見せる là cho xem.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="14" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 15</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">この遊園地(ゆうえんち)では（　）に限り、入場料(にゅうじょうりょう)が無料になります。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">月曜日から土曜日</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cấu trúc N + に限り mang nghĩa &quot;chỉ giới hạn trong...&quot;. Đi với danh từ chỉ thời gian hoặc đối tượng cụ thể (ở đây là Chủ Nhật).">
+            <span class="opt-label">B</span>
+            <span class="opt-text">日曜日</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc N + に限り mang nghĩa &quot;chỉ giới hạn trong...&quot;. Đi với danh từ chỉ thời gian hoặc đối tượng cụ thể (ở đây là Chủ Nhật).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">火曜日から金曜日</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">週末以外</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="15" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 16</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">紙が必要な場合、この棚(たな)から（　）だけとって使ってください。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">必要だ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">必要である</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Tính từ đuôi な giữ nguyên &quot;な&quot; khi bổ nghĩa cho「だけ」(lấy đúng khoảng cần thiết).">
+            <span class="opt-label">C</span>
+            <span class="opt-text">必要な</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Tính từ đuôi な giữ nguyên &quot;な&quot; khi bổ nghĩa cho「だけ」(lấy đúng khoảng cần thiết).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">必要</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="16" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 17</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">昔、コーヒーやお茶は薬（　）飲まれていた。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">について</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">によって</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Cấu trúc N + として có nghĩa là &quot;với tư cách là / như là&quot; (được uống như một loại thuốc).">
+            <span class="opt-label">C</span>
+            <span class="opt-text">として</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc N + として có nghĩa là &quot;với tư cách là / như là&quot; (được uống như một loại thuốc).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">にとって</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="17" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 18</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">【管理職】はストレスがたまりやすい。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">くだりそく</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cách đọc đúng của 管理職 (chức vụ quản lý) là かんりしょく.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">かんりしょく</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách đọc đúng của 管理職 (chức vụ quản lý) là かんりしょく.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">かんりそく</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">くだりしょく</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="18" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 19</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">自動ドアは、（　）と開くようになっています。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">通らない</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">押さない</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="近づく nghĩa là &quot;đến gần&quot;. Cửa tự động thì hệ thống được thiết lập để cứ hễ đến gần là mở (～と開くようになっている).">
+            <span class="opt-label">C</span>
+            <span class="opt-text">近づく</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">近づく nghĩa là &quot;đến gần&quot;. Cửa tự động thì hệ thống được thiết lập để cứ hễ đến gần là mở (～と開くようになっている).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">見直す</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="19" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 20</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">（　）次第(しだい)、帰国して仕事をはじめるつもりだ。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">留学し</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">在学し</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Cấu trúc V-masu (bỏ masu) + 次第 mang nghĩa &quot;ngay sau khi&quot;.「留学期間が終わり」(kết thúc thời gian du học) là hợp lý nhất về nghĩa.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">留学期間が終わり</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc V-masu (bỏ masu) + 次第 mang nghĩa &quot;ngay sau khi&quot;.「留学期間が終わり」(kết thúc thời gian du học) là hợp lý nhất về nghĩa.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">入学試験に失敗(しっぱい)し</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="20" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 21</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">今日はどの【商店】も休みだった。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cách đọc đúng của 商店 (cửa hàng/thương điếm) là しょうてん.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">しょうてん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách đọc đúng của 商店 (cửa hàng/thương điếm) là しょうてん.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">しょてん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">しょみせ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">しょうでん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="21" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 22</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">会議室を【格安】な料金で利用できる。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">かつあん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cách đọc đúng của 格安 (giá rẻ/ưu đãi) là かくやす.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">かくやす</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách đọc đúng của 格安 (giá rẻ/ưu đãi) là かくやす.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">かつやす</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">かくあん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="22" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 23</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">チン：「おなかがすいたね。」
+リー：「そっか。ラーメン（　）一緒にどう？」</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">ほど</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">なんて</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="N + でも dùng để đưa ra một gợi ý, ví dụ không quá khắt khe (đi ăn ramen hay gì đó không).">
+            <span class="opt-label">C</span>
+            <span class="opt-text">でも</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">N + でも dùng để đưa ra một gợi ý, ví dụ không quá khắt khe (đi ăn ramen hay gì đó không).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">なら</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="23" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 24</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">暑くなったり寒くなったり、気温の【変化】がはげしい。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cách đọc đúng của 変化 (biến hóa/thay đổi) là へんか.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">へんか</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách đọc đúng của 変化 (biến hóa/thay đổi) là へんか.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">かわけ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">かわか</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">へんけ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="24" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 25</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">テニスを始めようと思って、ラケットとテニス（　）を買いました。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="シューズ (shoes - giày) đi kèm với tennis để tạo thành &quot;giày tennis&quot;, phù hợp với ngữ cảnh mua dụng cụ thể thao.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">シューズ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">シューズ (shoes - giày) đi kèm với tennis để tạo thành &quot;giày tennis&quot;, phù hợp với ngữ cảnh mua dụng cụ thể thao.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ロビー</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">パスワード</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">トレーニング</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="25" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 26</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">（　）際(さい)は、以下のことを注意してください。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">毎日学校へ行く</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">寮(りょう)での生活の</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Cấu trúc V-る/V-た + 際は mang tính trang trọng, thường đi với những sự kiện đặc biệt (khi khám sức khỏe). Các đáp án khác chỉ sinh hoạt thường ngày.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">健康診断(けんこうしんだん)を受ける</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc V-る/V-た + 際は mang tính trang trọng, thường đi với những sự kiện đặc biệt (khi khám sức khỏe). Các đáp án khác chỉ sinh hoạt thường ngày.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">ごはんを食べる</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="26" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 27</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">インフルエンザが【流行】している。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">やはるう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">りゅうこ</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">やはる</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Cách đọc đúng của 流行 (lưu hành/lây lan) là りゅうこう.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">りゅうこう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách đọc đúng của 流行 (lưu hành/lây lan) là りゅうこう.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="27" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 28</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">（　）ここに来たのに、家にばかりいるのはもったいないです。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">たしか</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">やっぱり</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">じつは</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="せっかく + V-たのに mang nghĩa &quot;mất công / cất công làm gì đó vậy mà...&quot;.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">せっかく</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">せっかく + V-たのに mang nghĩa &quot;mất công / cất công làm gì đó vậy mà...&quot;.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="28" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 29</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">彼は【他人】のことには口を出さない人だ。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">たひと</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Cách đọc đúng của 他人 (người khác/người dưng) là たにん.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">たにん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách đọc đúng của 他人 (người khác/người dưng) là たにん.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">ほかにん</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">ほかひと</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="29" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 30</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">A:この前のお店、料理はおいしいし、店員さんも親切でよかったね。
+B:うん、僕(ぼく)もいつか（　）店を持ちたいなって思ってるんだ。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">そんな</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Khi nhắc lại một sự vật/sự việc trong quá khứ mà cả người nói và người nghe đều biết, ta dùng「あんな」.">
+            <span class="opt-label">B</span>
+            <span class="opt-text">あんな</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Khi nhắc lại một sự vật/sự việc trong quá khứ mà cả người nói và người nghe đều biết, ta dùng「あんな」.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">こんな</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">どんな</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="30" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 31</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">国へ帰る（　）、ハワイーへ行きたいです。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">うちに</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">ばかり</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="V-る + 前に (まえに) nghĩa là &quot;trước khi làm gì đó&quot;. Trước khi về nước thì muốn đi Hawaii.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">まえに</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">V-る + 前に (まえに) nghĩa là &quot;trước khi làm gì đó&quot;. Trước khi về nước thì muốn đi Hawaii.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">場合(ばあい)</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="31" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 32</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">Chọn cách nói gần nghĩa hoặc tương đương với từ trong ngoặc: &lt;電話で&gt;
+店員：はい、レストランさくらです。
+Aさん：すみません、そちらへ行きたいんですが、駅からの道を【教えてもらえませんか】。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">教えたことがありますか</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">教えていませんか</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">教えてあげませんか</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Đổi sang cách nói khiêm nhường và lịch sự hơn của ～てもらえませんか là ～てもらえないでしょうか (Có thể chỉ đường cho tôi được không?).">
+            <span class="opt-label">D</span>
+            <span class="opt-text">教えてもらえないでしょうか</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Đổi sang cách nói khiêm nhường và lịch sự hơn của ～てもらえませんか là ～てもらえないでしょうか (Có thể chỉ đường cho tôi được không?).</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="32" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 33</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">さっき部屋に（　）とき、管理人さんに声をかけられました。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc V-ようとする diễn tả lúc đang định làm gì đó. Khi vừa định bước vào phòng thì bị gọi lại. (入る là động từ nhóm 1, chia thành 入ろう).">
+            <span class="opt-label">A</span>
+            <span class="opt-text">入ろうとした</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc V-ようとする diễn tả lúc đang định làm gì đó. Khi vừa định bước vào phòng thì bị gọi lại. (入る là động từ nhóm 1, chia thành 入ろう).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">入ようとした</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">入ったばかり</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">入ようばかり</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="33" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 34</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">来週交流会をするよ。（　）に遊びにきてね。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">きばり</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">きもち</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">きあい</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="気軽に (きがるに) mang nghĩa &quot;một cách thoải mái, không cần e ngại&quot;. Lời rủ rê bạn bè đến chơi tự nhiên.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">きがる</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">気軽に (きがるに) mang nghĩa &quot;một cách thoải mái, không cần e ngại&quot;. Lời rủ rê bạn bè đến chơi tự nhiên.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="34" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 35</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">家を（　）とき、とつぜん雨が降り出した。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">出ようとして</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">出たばかり</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">出よう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Cấu trúc V-ようとしたとき diễn tả một sự việc bất ngờ xảy ra cắt ngang hành động đang định thực hiện (đang định ra khỏi nhà thì trời mưa).">
+            <span class="opt-label">D</span>
+            <span class="opt-text">出ようとした</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc V-ようとしたとき diễn tả một sự việc bất ngờ xảy ra cắt ngang hành động đang định thực hiện (đang định ra khỏi nhà thì trời mưa).</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="35" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 36</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">今日のテストは勉強しなかったわりに（　）。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Cấu trúc ～わりに diễn tả sự trái ngược với dự đoán. Dù không học bài nhưng lại làm tốt.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">よくできた</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cấu trúc ～わりに diễn tả sự trái ngược với dự đoán. Dù không học bài nhưng lại làm tốt.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">なかなかできなかった</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">あまりできなかった</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">むずかしかった</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="36" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 37</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">Chọn cách nói gần nghĩa hoặc tương đương với từ trong ngoặc: どのくらい時間が【かかりますか】。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">かかるなあ？</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">かかるだろう？</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">かかるでしょう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Cách nói thay thế lịch sự hơn cho かかりますか khi muốn hỏi/phỏng đoán nhẹ nhàng là かかるでしょうか.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">かかるでしょうか</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách nói thay thế lịch sự hơn cho かかりますか khi muốn hỏi/phỏng đoán nhẹ nhàng là かかるでしょうか.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="37" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 38</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">台風15号によって（　）。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">大学へ行きます</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="N + によって chỉ nguyên nhân dẫn đến một kết quả khách quan (vì bão số 15 nên nhiều cây bị đổ).">
+            <span class="opt-label">B</span>
+            <span class="opt-text">たくさんの木が倒(たお)れた</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">N + によって chỉ nguyên nhân dẫn đến một kết quả khách quan (vì bão số 15 nên nhiều cây bị đổ).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">明日は大雨だろう</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">明日、出かけたくない</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="38" data-include-picture="false">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 39</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">事件の意外な【けつまつ】を知った。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">結床</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">決床</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">決末</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="true" data-rationale="Cách viết Hán tự đúng của けつまつ (kết cục/kết thúc) là 結末.">
+            <span class="opt-label">D</span>
+            <span class="opt-text">結末</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Cách viết Hán tự đúng của けつまつ (kết cục/kết thúc) là 結末.</div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="39" data-include-picture="true">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 40</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">この教室にはいつまで申(もう)し込(こ)めますか。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">7月6日</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="true" data-rationale="Dựa vào thông tin hiển thị trên hình ảnh đi kèm để chọn đáp án (hạn chót đăng ký).">
+            <span class="opt-label">B</span>
+            <span class="opt-text">6月25日</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Dựa vào thông tin hiển thị trên hình ảnh đi kèm để chọn đáp án (hạn chót đăng ký).</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">6月6日</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">7月25日</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="40" data-include-picture="true">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 41</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">正しくないものをえらんでください。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="Đây là câu hỏi chọn ý sai dựa trên nội dung bức ảnh/tờ rơi đã cho.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">カメラを借りたい人はイベントの日に申し込みます。</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Đây là câu hỏi chọn ý sai dựa trên nội dung bức ảnh/tờ rơi đã cho.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">参加したい人は参加費として200円払います。</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">カメラを借りたい人はイベントの前に申し込みます。</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">この教室に参加する人はカメラを持ってきます。</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="41" data-include-picture="true">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 42</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">「主催(しゅさい)」は何を指(さ)していますか。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="true" data-rationale="主催 (chủ tọa/ban tổ chức) là người đứng ra mở sự kiện đó, khớp với nội dung bài đọc trong ảnh.">
+            <span class="opt-label">A</span>
+            <span class="opt-text">そのイベントを開(ひら)く人</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">主催 (chủ tọa/ban tổ chức) là người đứng ra mở sự kiện đó, khớp với nội dung bài đọc trong ảnh.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">そのイベントを申し込む方</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="false" data-rationale="">
+            <span class="opt-label">C</span>
+            <span class="opt-text">そのイベントに参加する人</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">そのイベントをする場所</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      
+        <div class="question" data-index="42" data-include-picture="true">
+          <div class="q-header">
+            <span class="q-number">Câu hỏi 43</span>
+            <span class="q-of">/ 43</span>
+          </div>
+          <div class="q-text">この教室に何人まで参加できますか。</div>
+          
+          <div class="options">
+        <div class="option-wrapper">
+          <button class="option" data-label="A" data-correct="false" data-rationale="">
+            <span class="opt-label">A</span>
+            <span class="opt-text">わかりません</span>
+          </button>
+          <div class="option-feedback hidden" data-for="A">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="B" data-correct="false" data-rationale="">
+            <span class="opt-label">B</span>
+            <span class="opt-text">200人</span>
+          </button>
+          <div class="option-feedback hidden" data-for="B">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="C" data-correct="true" data-rationale="Dựa vào thông tin chi tiết (số lượng người tham gia tối đa) được ghi trong hình ảnh.">
+            <span class="opt-label">C</span>
+            <span class="opt-text">15人</span>
+          </button>
+          <div class="option-feedback hidden" data-for="C">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale">Dựa vào thông tin chi tiết (số lượng người tham gia tối đa) được ghi trong hình ảnh.</div>
+          </div>
+        </div>
+      
+        <div class="option-wrapper">
+          <button class="option" data-label="D" data-correct="false" data-rationale="">
+            <span class="opt-label">D</span>
+            <span class="opt-text">13人</span>
+          </button>
+          <div class="option-feedback hidden" data-for="D">
+            <div class="feedback-status"></div>
+            <div class="feedback-rationale"></div>
+          </div>
+        </div>
+      </div>
+          <div class="question-nav">
+            <button class="prev-btn hidden">← Quay lại</button>
+            <button class="next-btn hidden">Câu hỏi tiếp theo →</button>
+          </div>
+        </div>
+      </div>
+    <div class="results" id="results">
+      <h2>Hoàn thành bài kiểm tra!</h2>
+      <div class="score" id="score">0%</div>
+      <div class="score-text" id="score-text"></div>
+      <button class="restart-btn" onclick="restart()">Thử lại</button>
+    </div>
+  </div>
+  
+  <div class="picture-column" id="picture-column">
+    
+    <div class="picture-section hidden" id="picture-section-39">
+      <div class="picture-placeholder">
+        <img src="./images/Screenshot 2026-03-28 134650.png" alt="Question 40 Image" onclick="openModal(this.src)" />
+      </div>
+    </div>
+    
+    <div class="picture-section hidden" id="picture-section-40">
+      <div class="picture-placeholder">
+        <img src="./images/Screenshot 2026-03-28 134650.png" alt="Question 41 Image" onclick="openModal(this.src)" />
+      </div>
+    </div>
+    
+    <div class="picture-section hidden" id="picture-section-41">
+      <div class="picture-placeholder">
+        <img src="./images/Screenshot 2026-03-28 134650.png" alt="Question 42 Image" onclick="openModal(this.src)" />
+      </div>
+    </div>
+    
+    <div class="picture-section hidden" id="picture-section-42">
+      <div class="picture-placeholder">
+        <img src="./images/Screenshot 2026-03-28 134650.png" alt="Question 43 Image" onclick="openModal(this.src)" />
+      </div>
+    </div>
+    
+  </div>
+  
+</div>
+</div>
+
+<div class="image-modal" id="image-modal" onclick="closeModal()">
+  <button class="image-modal-close" onclick="closeModal()">&times;</button>
+  <img id="image-modal-img" src="" onclick="event.stopPropagation()" />
+</div>
+
+<script>
+const quizData = [{"question":"地震（じしん）のときは、（　）、落ち着いて行動しましょう。","hint":"","includePicture":false,"options":[{"label":"A","text":"あわてないで","isCorrect":true,"rationale":"「あわてないで」(đừng hoảng hốt) đi kèm với 「落ち着いて」(bình tĩnh) tạo thành lời khuyên hợp lý khi có động đất: đừng hoảng hốt mà hãy hành động bình tĩnh."},{"label":"B","text":"こまらないで","isCorrect":false,"rationale":""},{"label":"C","text":"いそがないで","isCorrect":false,"rationale":""},{"label":"D","text":"はしらないで","isCorrect":false,"rationale":""}]},{"question":"子供を抱きしめて【安心感】をあたえる。","hint":"","includePicture":false,"options":[{"label":"A","text":"やすころかん","isCorrect":false,"rationale":""},{"label":"B","text":"あんころかん","isCorrect":false,"rationale":""},{"label":"C","text":"あんしんかん","isCorrect":true,"rationale":"Cách đọc đúng của 安心感 (cảm giác an toàn/an tâm) là あんしんかん."},{"label":"D","text":"やすしんかん","isCorrect":false,"rationale":""}]},{"question":"今朝の天気予報（　）、今週はずっと晴れる（　）。","hint":"","includePicture":false,"options":[{"label":"A","text":"によって・でしょう","isCorrect":false,"rationale":""},{"label":"B","text":"によると・みたそうだ","isCorrect":false,"rationale":""},{"label":"C","text":"によると・らしい","isCorrect":true,"rationale":"Cấu trúc ～によると...らしい dùng để truyền đạt lại thông tin nghe được từ một nguồn nào đó (theo như dự báo thời tiết thì có vẻ như...)."},{"label":"D","text":"によって・そう","isCorrect":false,"rationale":""}]},{"question":"授業(じゅぎょう)が終わったら、みんなで急いで教室を出て行きますが、ワンさんは帰る準備をゆっくりしています。（　）人です。","hint":"","includePicture":false,"options":[{"label":"A","text":"思いやりがある","isCorrect":false,"rationale":""},{"label":"B","text":"のんびりしている","isCorrect":true,"rationale":"「のんびりしている」diễn tả tính cách thong thả, ung dung, phù hợp với hành động chuẩn bị ra về một cách từ từ (ゆっくり) trong khi mọi người vội vã."},{"label":"C","text":"積極的(せっきょくてき)な","isCorrect":false,"rationale":""},{"label":"D","text":"しっかりしている","isCorrect":false,"rationale":""}]},{"question":"最近、何だか（　）が出ない。どうしてだろう……。","hint":"","includePicture":false,"options":[{"label":"A","text":"きぶん","isCorrect":false,"rationale":""},{"label":"B","text":"きもち","isCorrect":false,"rationale":""},{"label":"C","text":"きょうみ","isCorrect":false,"rationale":""},{"label":"D","text":"やるき","isCorrect":true,"rationale":"「やる気が出る / 出ない」là cụm từ cố định mang nghĩa có/không có hứng thú, động lực làm việc."}]},{"question":"水を飲まないで、1週間も生きられる（　）。","hint":"","includePicture":false,"options":[{"label":"A","text":"ようになっている","isCorrect":false,"rationale":""},{"label":"B","text":"かもしれない","isCorrect":false,"rationale":""},{"label":"C","text":"はずがない","isCorrect":true,"rationale":"「はずがない」mang nghĩa \"chắc chắn không thể nào\", dùng để phủ định mạnh mẽ việc có thể sống 1 tuần mà không uống nước."},{"label":"D","text":"はずだ","isCorrect":false,"rationale":""}]},{"question":"[芸能人(げいのうじん)の写真を見ながら]\nA：あー、かわいい。僕(ぼく)も（　）彼女(かのじょ)がほしいな。\nB：それは…ちょっと難(むずか)しいかも……。","hint":"","includePicture":false,"options":[{"label":"A","text":"こんな","isCorrect":false,"rationale":""},{"label":"B","text":"どんな","isCorrect":false,"rationale":""},{"label":"C","text":"あんな","isCorrect":true,"rationale":"Khi cả hai người cùng đang nhìn vào một bức ảnh (người/vật ở xa hoặc không thuộc sở hữu trực tiếp của ai), dùng「あんな」(như thế kia) là phù hợp nhất."},{"label":"D","text":"そんな","isCorrect":false,"rationale":""}]},{"question":"好きなドラマをDVDに【録画】する。","hint":"","includePicture":false,"options":[{"label":"A","text":"ろくが","isCorrect":true,"rationale":"Cách đọc đúng của 録画 (ghi hình) là ろくが."},{"label":"B","text":"ろくかく","isCorrect":false,"rationale":""},{"label":"C","text":"ろくかい","isCorrect":false,"rationale":""},{"label":"D","text":"ろくえ","isCorrect":false,"rationale":""}]},{"question":"この弁当箱(べんとうばこ)なら、昼になってもご飯(はん)は（　）まま食べられます。","hint":"","includePicture":false,"options":[{"label":"A","text":"あたたかな","isCorrect":false,"rationale":""},{"label":"B","text":"あたたか","isCorrect":false,"rationale":""},{"label":"C","text":"あたたかく","isCorrect":false,"rationale":""},{"label":"D","text":"あたたかい","isCorrect":true,"rationale":"Tính từ đuôi い giữ nguyên + まま mang nghĩa \"giữ nguyên trạng thái\" (giữ nguyên độ ấm nóng)."}]},{"question":"海外における日本のアニメの（　）は年々高まっている。","hint":"","includePicture":false,"options":[{"label":"A","text":"ひょうばん","isCorrect":true,"rationale":"評判 (ひょうばん - đánh giá, tiếng tăm).「評判が高まる」mang nghĩa là đánh giá, danh tiếng ngày càng tăng lên."},{"label":"B","text":"ていいん","isCorrect":false,"rationale":""},{"label":"C","text":"ひょうじ","isCorrect":false,"rationale":""},{"label":"D","text":"せいかく","isCorrect":false,"rationale":""}]},{"question":"漢字を３５０字【覚えた】。","hint":"","includePicture":false,"options":[{"label":"A","text":"おぼえた","isCorrect":true,"rationale":"Cách đọc đúng của 覚えた (đã nhớ/đã học thuộc) là おぼえた."},{"label":"B","text":"さとえた","isCorrect":false,"rationale":""},{"label":"C","text":"さめえた","isCorrect":false,"rationale":""},{"label":"D","text":"かくえた","isCorrect":false,"rationale":""}]},{"question":"試験の予定が（　）されて、来週の月曜日になります。","hint":"","includePicture":false,"options":[{"label":"A","text":"へんこう","isCorrect":true,"rationale":"変更 (へんこう - thay đổi).「予定が変更される」nghĩa là lịch trình được thay đổi."},{"label":"B","text":"へんそう","isCorrect":false,"rationale":""},{"label":"C","text":"へんじ","isCorrect":false,"rationale":""},{"label":"D","text":"へんかん","isCorrect":false,"rationale":""}]},{"question":"店員：はい、「さくらカフェ」でございます。\nA：あのう、黒い財布を（　）ようなんですが、\n店員：あ、はい、お預(あず)かりしています。","hint":"","includePicture":false,"options":[{"label":"A","text":"置いてしまった","isCorrect":false,"rationale":""},{"label":"B","text":"忘れてしまう","isCorrect":false,"rationale":""},{"label":"C","text":"置いてしまう","isCorrect":false,"rationale":""},{"label":"D","text":"忘れてしまった","isCorrect":true,"rationale":"Dùng V-てしまった để diễn tả sự tiếc nuối về một hành động lỡ xảy ra trong quá khứ (lỡ để quên)."}]},{"question":"卒業式(しき)では写真をとったんでしょう。ぜひ、（　）ほしいです。","hint":"","includePicture":false,"options":[{"label":"A","text":"見られて","isCorrect":false,"rationale":""},{"label":"B","text":"見ていて","isCorrect":false,"rationale":""},{"label":"C","text":"見て","isCorrect":false,"rationale":""},{"label":"D","text":"見せて","isCorrect":true,"rationale":"Cấu trúc V-てほしい dùng khi muốn người khác làm gì cho mình (muốn bạn cho tôi xem ảnh). 見せる là cho xem."}]},{"question":"この遊園地(ゆうえんち)では（　）に限り、入場料(にゅうじょうりょう)が無料になります。","hint":"","includePicture":false,"options":[{"label":"A","text":"月曜日から土曜日","isCorrect":false,"rationale":""},{"label":"B","text":"日曜日","isCorrect":true,"rationale":"Cấu trúc N + に限り mang nghĩa \"chỉ giới hạn trong...\". Đi với danh từ chỉ thời gian hoặc đối tượng cụ thể (ở đây là Chủ Nhật)."},{"label":"C","text":"火曜日から金曜日","isCorrect":false,"rationale":""},{"label":"D","text":"週末以外","isCorrect":false,"rationale":""}]},{"question":"紙が必要な場合、この棚(たな)から（　）だけとって使ってください。","hint":"","includePicture":false,"options":[{"label":"A","text":"必要だ","isCorrect":false,"rationale":""},{"label":"B","text":"必要である","isCorrect":false,"rationale":""},{"label":"C","text":"必要な","isCorrect":true,"rationale":"Tính từ đuôi な giữ nguyên \"な\" khi bổ nghĩa cho「だけ」(lấy đúng khoảng cần thiết)."},{"label":"D","text":"必要","isCorrect":false,"rationale":""}]},{"question":"昔、コーヒーやお茶は薬（　）飲まれていた。","hint":"","includePicture":false,"options":[{"label":"A","text":"について","isCorrect":false,"rationale":""},{"label":"B","text":"によって","isCorrect":false,"rationale":""},{"label":"C","text":"として","isCorrect":true,"rationale":"Cấu trúc N + として có nghĩa là \"với tư cách là / như là\" (được uống như một loại thuốc)."},{"label":"D","text":"にとって","isCorrect":false,"rationale":""}]},{"question":"【管理職】はストレスがたまりやすい。","hint":"","includePicture":false,"options":[{"label":"A","text":"くだりそく","isCorrect":false,"rationale":""},{"label":"B","text":"かんりしょく","isCorrect":true,"rationale":"Cách đọc đúng của 管理職 (chức vụ quản lý) là かんりしょく."},{"label":"C","text":"かんりそく","isCorrect":false,"rationale":""},{"label":"D","text":"くだりしょく","isCorrect":false,"rationale":""}]},{"question":"自動ドアは、（　）と開くようになっています。","hint":"","includePicture":false,"options":[{"label":"A","text":"通らない","isCorrect":false,"rationale":""},{"label":"B","text":"押さない","isCorrect":false,"rationale":""},{"label":"C","text":"近づく","isCorrect":true,"rationale":"近づく nghĩa là \"đến gần\". Cửa tự động thì hệ thống được thiết lập để cứ hễ đến gần là mở (～と開くようになっている)."},{"label":"D","text":"見直す","isCorrect":false,"rationale":""}]},{"question":"（　）次第(しだい)、帰国して仕事をはじめるつもりだ。","hint":"","includePicture":false,"options":[{"label":"A","text":"留学し","isCorrect":false,"rationale":""},{"label":"B","text":"在学し","isCorrect":false,"rationale":""},{"label":"C","text":"留学期間が終わり","isCorrect":true,"rationale":"Cấu trúc V-masu (bỏ masu) + 次第 mang nghĩa \"ngay sau khi\".「留学期間が終わり」(kết thúc thời gian du học) là hợp lý nhất về nghĩa."},{"label":"D","text":"入学試験に失敗(しっぱい)し","isCorrect":false,"rationale":""}]},{"question":"今日はどの【商店】も休みだった。","hint":"","includePicture":false,"options":[{"label":"A","text":"しょうてん","isCorrect":true,"rationale":"Cách đọc đúng của 商店 (cửa hàng/thương điếm) là しょうてん."},{"label":"B","text":"しょてん","isCorrect":false,"rationale":""},{"label":"C","text":"しょみせ","isCorrect":false,"rationale":""},{"label":"D","text":"しょうでん","isCorrect":false,"rationale":""}]},{"question":"会議室を【格安】な料金で利用できる。","hint":"","includePicture":false,"options":[{"label":"A","text":"かつあん","isCorrect":false,"rationale":""},{"label":"B","text":"かくやす","isCorrect":true,"rationale":"Cách đọc đúng của 格安 (giá rẻ/ưu đãi) là かくやす."},{"label":"C","text":"かつやす","isCorrect":false,"rationale":""},{"label":"D","text":"かくあん","isCorrect":false,"rationale":""}]},{"question":"チン：「おなかがすいたね。」\nリー：「そっか。ラーメン（　）一緒にどう？」","hint":"","includePicture":false,"options":[{"label":"A","text":"ほど","isCorrect":false,"rationale":""},{"label":"B","text":"なんて","isCorrect":false,"rationale":""},{"label":"C","text":"でも","isCorrect":true,"rationale":"N + でも dùng để đưa ra một gợi ý, ví dụ không quá khắt khe (đi ăn ramen hay gì đó không)."},{"label":"D","text":"なら","isCorrect":false,"rationale":""}]},{"question":"暑くなったり寒くなったり、気温の【変化】がはげしい。","hint":"","includePicture":false,"options":[{"label":"A","text":"へんか","isCorrect":true,"rationale":"Cách đọc đúng của 変化 (biến hóa/thay đổi) là へんか."},{"label":"B","text":"かわけ","isCorrect":false,"rationale":""},{"label":"C","text":"かわか","isCorrect":false,"rationale":""},{"label":"D","text":"へんけ","isCorrect":false,"rationale":""}]},{"question":"テニスを始めようと思って、ラケットとテニス（　）を買いました。","hint":"","includePicture":false,"options":[{"label":"A","text":"シューズ","isCorrect":true,"rationale":"シューズ (shoes - giày) đi kèm với tennis để tạo thành \"giày tennis\", phù hợp với ngữ cảnh mua dụng cụ thể thao."},{"label":"B","text":"ロビー","isCorrect":false,"rationale":""},{"label":"C","text":"パスワード","isCorrect":false,"rationale":""},{"label":"D","text":"トレーニング","isCorrect":false,"rationale":""}]},{"question":"（　）際(さい)は、以下のことを注意してください。","hint":"","includePicture":false,"options":[{"label":"A","text":"毎日学校へ行く","isCorrect":false,"rationale":""},{"label":"B","text":"寮(りょう)での生活の","isCorrect":false,"rationale":""},{"label":"C","text":"健康診断(けんこうしんだん)を受ける","isCorrect":true,"rationale":"Cấu trúc V-る/V-た + 際は mang tính trang trọng, thường đi với những sự kiện đặc biệt (khi khám sức khỏe). Các đáp án khác chỉ sinh hoạt thường ngày."},{"label":"D","text":"ごはんを食べる","isCorrect":false,"rationale":""}]},{"question":"インフルエンザが【流行】している。","hint":"","includePicture":false,"options":[{"label":"A","text":"やはるう","isCorrect":false,"rationale":""},{"label":"B","text":"りゅうこ","isCorrect":false,"rationale":""},{"label":"C","text":"やはる","isCorrect":false,"rationale":""},{"label":"D","text":"りゅうこう","isCorrect":true,"rationale":"Cách đọc đúng của 流行 (lưu hành/lây lan) là りゅうこう."}]},{"question":"（　）ここに来たのに、家にばかりいるのはもったいないです。","hint":"","includePicture":false,"options":[{"label":"A","text":"たしか","isCorrect":false,"rationale":""},{"label":"B","text":"やっぱり","isCorrect":false,"rationale":""},{"label":"C","text":"じつは","isCorrect":false,"rationale":""},{"label":"D","text":"せっかく","isCorrect":true,"rationale":"せっかく + V-たのに mang nghĩa \"mất công / cất công làm gì đó vậy mà...\"."}]},{"question":"彼は【他人】のことには口を出さない人だ。","hint":"","includePicture":false,"options":[{"label":"A","text":"たひと","isCorrect":false,"rationale":""},{"label":"B","text":"たにん","isCorrect":true,"rationale":"Cách đọc đúng của 他人 (người khác/người dưng) là たにん."},{"label":"C","text":"ほかにん","isCorrect":false,"rationale":""},{"label":"D","text":"ほかひと","isCorrect":false,"rationale":""}]},{"question":"A:この前のお店、料理はおいしいし、店員さんも親切でよかったね。\nB:うん、僕(ぼく)もいつか（　）店を持ちたいなって思ってるんだ。","hint":"","includePicture":false,"options":[{"label":"A","text":"そんな","isCorrect":false,"rationale":""},{"label":"B","text":"あんな","isCorrect":true,"rationale":"Khi nhắc lại một sự vật/sự việc trong quá khứ mà cả người nói và người nghe đều biết, ta dùng「あんな」."},{"label":"C","text":"こんな","isCorrect":false,"rationale":""},{"label":"D","text":"どんな","isCorrect":false,"rationale":""}]},{"question":"国へ帰る（　）、ハワイーへ行きたいです。","hint":"","includePicture":false,"options":[{"label":"A","text":"うちに","isCorrect":false,"rationale":""},{"label":"B","text":"ばかり","isCorrect":false,"rationale":""},{"label":"C","text":"まえに","isCorrect":true,"rationale":"V-る + 前に (まえに) nghĩa là \"trước khi làm gì đó\". Trước khi về nước thì muốn đi Hawaii."},{"label":"D","text":"場合(ばあい)","isCorrect":false,"rationale":""}]},{"question":"<電話で>\n店員：はい、レストランさくらです。\nAさん：すみません、そちらへ行きたいんですが、駅からの道を【教えてもらえませんか】。","hint":"","includePicture":false,"options":[{"label":"A","text":"教えたことがありますか","isCorrect":false,"rationale":""},{"label":"B","text":"教えていませんか","isCorrect":false,"rationale":""},{"label":"C","text":"教えてあげませんか","isCorrect":false,"rationale":""},{"label":"D","text":"教えてもらえないでしょうか","isCorrect":true,"rationale":"Đổi sang cách nói khiêm nhường và lịch sự hơn của ～てもらえませんか là ～てもらえないでしょうか (Có thể chỉ đường cho tôi được không?)."}]},{"question":"さっき部屋に（　）とき、管理人さんに声をかけられました。","hint":"","includePicture":false,"options":[{"label":"A","text":"入ろうとした","isCorrect":true,"rationale":"Cấu trúc V-ようとする diễn tả lúc đang định làm gì đó. Khi vừa định bước vào phòng thì bị gọi lại. (入る là động từ nhóm 1, chia thành 入ろう)."},{"label":"B","text":"入ようとした","isCorrect":false,"rationale":""},{"label":"C","text":"入ったばかり","isCorrect":false,"rationale":""},{"label":"D","text":"入ようばかり","isCorrect":false,"rationale":""}]},{"question":"来週交流会をするよ。（　）に遊びにきてね。","hint":"","includePicture":false,"options":[{"label":"A","text":"きばり","isCorrect":false,"rationale":""},{"label":"B","text":"きもち","isCorrect":false,"rationale":""},{"label":"C","text":"きあい","isCorrect":false,"rationale":""},{"label":"D","text":"きがる","isCorrect":true,"rationale":"気軽に (きがるに) mang nghĩa \"một cách thoải mái, không cần e ngại\". Lời rủ rê bạn bè đến chơi tự nhiên."}]},{"question":"家を（　）とき、とつぜん雨が降り出した。","hint":"","includePicture":false,"options":[{"label":"A","text":"出ようとして","isCorrect":false,"rationale":""},{"label":"B","text":"出たばかり","isCorrect":false,"rationale":""},{"label":"C","text":"出よう","isCorrect":false,"rationale":""},{"label":"D","text":"出ようとした","isCorrect":true,"rationale":"Cấu trúc V-ようとしたとき diễn tả một sự việc bất ngờ xảy ra cắt ngang hành động đang định thực hiện (đang định ra khỏi nhà thì trời mưa)."}]},{"question":"今日のテストは勉強しなかったわりに（　）。","hint":"","includePicture":false,"options":[{"label":"A","text":"よくできた","isCorrect":true,"rationale":"Cấu trúc ～わりに diễn tả sự trái ngược với dự đoán. Dù không học bài nhưng lại làm tốt."},{"label":"B","text":"なかなかできなかった","isCorrect":false,"rationale":""},{"label":"C","text":"あまりできなかった","isCorrect":false,"rationale":""},{"label":"D","text":"むずかしかった","isCorrect":false,"rationale":""}]},{"question":"Chọn cách nói gần nghĩa hoặc tương đương với từ trong ngoặc: どのくらい時間が【かかりますか】。","hint":"","includePicture":false,"options":[{"label":"A","text":"かかるなあ？","isCorrect":false,"rationale":""},{"label":"B","text":"かかるだろう？","isCorrect":false,"rationale":""},{"label":"C","text":"かかるでしょう","isCorrect":false,"rationale":""},{"label":"D","text":"かかるでしょうか","isCorrect":true,"rationale":"Cách nói thay thế lịch sự hơn cho かかりますか khi muốn hỏi/phỏng đoán nhẹ nhàng là かかるでしょうか."}]},{"question":"台風15号によって（　）。","hint":"","includePicture":false,"options":[{"label":"A","text":"大学へ行きます","isCorrect":false,"rationale":""},{"label":"B","text":"たくさんの木が倒(たお)れた","isCorrect":true,"rationale":"N + によって chỉ nguyên nhân dẫn đến một kết quả khách quan (vì bão số 15 nên nhiều cây bị đổ)."},{"label":"C","text":"明日は大雨だろう","isCorrect":false,"rationale":""},{"label":"D","text":"明日、出かけたくない","isCorrect":false,"rationale":""}]},{"question":"事件の意外な【けつまつ】を知った。","hint":"","includePicture":false,"options":[{"label":"A","text":"結床","isCorrect":false,"rationale":""},{"label":"B","text":"決床","isCorrect":false,"rationale":""},{"label":"C","text":"決末","isCorrect":false,"rationale":""},{"label":"D","text":"結末","isCorrect":true,"rationale":"Cách viết Hán tự đúng của けつまつ (kết cục/kết thúc) là 結末."}]},{"question":"この教室にはいつまで申(もう)し込(こ)めますか。","hint":"","includePicture":true,"options":[{"label":"A","text":"7月6日","isCorrect":false,"rationale":""},{"label":"B","text":"6月25日","isCorrect":true,"rationale":"Dựa vào thông tin hiển thị trên hình ảnh đi kèm để chọn đáp án (hạn chót đăng ký)."},{"label":"C","text":"6月6日","isCorrect":false,"rationale":""},{"label":"D","text":"7月25日","isCorrect":false,"rationale":""}]},{"question":"正しくないものをえらんでください。","hint":"","includePicture":true,"options":[{"label":"A","text":"カメラを借りたい人はイベントの日に申し込みます。","isCorrect":true,"rationale":"Đây là câu hỏi chọn ý sai dựa trên nội dung bức ảnh/tờ rơi đã cho."},{"label":"B","text":"参加したい人は参加費として200円払います。","isCorrect":false,"rationale":""},{"label":"C","text":"カメラを借りたい人はイベントの前に申し込みます。","isCorrect":false,"rationale":""},{"label":"D","text":"この教室に参加する人はカメラを持ってきます。","isCorrect":false,"rationale":""}]},{"question":"「主催(しゅさい)」は何を指(さ)していますか。","hint":"","includePicture":true,"options":[{"label":"A","text":"そのイベントを開(ひら)く人","isCorrect":true,"rationale":"主催 (chủ tọa/ban tổ chức) là người đứng ra mở sự kiện đó, khớp với nội dung bài đọc trong ảnh."},{"label":"B","text":"そのイベントを申し込む方","isCorrect":false,"rationale":""},{"label":"C","text":"そのイベントに参加する人","isCorrect":false,"rationale":""},{"label":"D","text":"そのイベントをする場所","isCorrect":false,"rationale":""}]},{"question":"この教室に何人まで参加できますか。","hint":"","includePicture":true,"options":[{"label":"A","text":"わかりません","isCorrect":false,"rationale":""},{"label":"B","text":"200人","isCorrect":false,"rationale":""},{"label":"C","text":"15人","isCorrect":true,"rationale":"Dựa vào thông tin chi tiết (số lượng người tham gia tối đa) được ghi trong hình ảnh."},{"label":"D","text":"13人","isCorrect":false,"rationale":""}]}];
+const tr = {"questionLabel":"Câu hỏi","correct":"Đúng!","incorrect":"Sai","back":"← Quay lại","backToIndex":"← Quay lại trang chủ","next":"Câu hỏi tiếp theo →","seeResults":"Xem kết quả","complete":"Hoàn thành bài kiểm tra!","scoreText":"Bạn trả lời đúng {correct} trên {total} câu","tryAgain":"Thử lại","rightAnswer":"Đáp án đúng","notQuite":"Chưa đúng"};
+let currentQ = 0, correctCount = 0;
+const selectedAnswers = new Array(quizData.length).fill(null);
+
+function openModal(src) {
+  const modal = document.getElementById('image-modal');
+  const modalImg = document.getElementById('image-modal-img');
+  if (modal && modalImg) {
+    modalImg.src = src;
+    modal.classList.add('active');
+  }
+}
+
+function closeModal() {
+  const modal = document.getElementById('image-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function shuffleOptions() {
+  document.querySelectorAll('.options').forEach(optionsContainer => {
+    const wrappers = Array.from(optionsContainer.querySelectorAll('.option-wrapper'));
+    const shuffled = shuffleArray(wrappers);
+    shuffled.forEach(wrapper => optionsContainer.appendChild(wrapper));
+  });
+}
+
+function shuffleQuestions() {
+  const quizContainer = document.getElementById('quiz-container');
+  if (!quizContainer) return;
+
+  const questions = Array.from(quizContainer.querySelectorAll('.question'));
+  const shuffled = shuffleArray(questions);
+  shuffled.forEach(question => quizContainer.appendChild(question));
+}
+
+function renumberQuestions() {
+  document.querySelectorAll('.question').forEach((questionEl, index) => {
+    const numberEl = questionEl.querySelector('.q-number');
+    if (numberEl) {
+      numberEl.textContent = tr.questionLabel + ' ' + (index + 1);
+    }
+  });
+}
+
+function init() {
+  shuffleQuestions();
+  renumberQuestions();
+  shuffleOptions();
+  showQuestion(0);
+  document.querySelectorAll('.option').forEach(opt => opt.addEventListener('click', () => selectOption(opt)));
+  document.querySelectorAll('.next-btn').forEach(btn => btn.addEventListener('click', nextQuestion));
+  document.querySelectorAll('.prev-btn').forEach(btn => btn.addEventListener('click', prevQuestion));
+}
+
+function selectOption(opt) {
+  if (selectedAnswers[currentQ] !== null || opt.classList.contains('disabled')) return;
+  const q = opt.closest('.question');
+  const options = q.querySelectorAll('.option');
+  const isCorrect = opt.dataset.correct === 'true';
+  selectedAnswers[currentQ] = opt.dataset.label || '';
+  
+  // Mark all options as disabled
+  options.forEach(o => o.classList.add('disabled'));
+  
+  // Style selected option
+  opt.classList.add('selected', isCorrect ? 'correct' : 'incorrect');
+  
+  // Show correct answer if wrong
+  if (!isCorrect) {
+    const correctOpt = [...options].find(o => o.dataset.correct === 'true');
+    if (correctOpt) correctOpt.classList.add('show-correct');
+  }
+  
+  if (isCorrect) correctCount++;
+  
+  // Show feedback for ALL options that have rationale
+  options.forEach(o => {
+    const wrapper = o.closest('.option-wrapper');
+    const feedback = wrapper.querySelector('.option-feedback');
+    const rationale = o.dataset.rationale;
+    const isThisCorrect = o.dataset.correct === 'true';
+    
+    if (rationale && rationale.trim()) {
+      feedback.classList.remove('hidden');
+      feedback.classList.add(isThisCorrect ? 'correct-feedback' : 'incorrect-feedback');
+      
+      const statusEl = feedback.querySelector('.feedback-status');
+      statusEl.className = 'feedback-status ' + (isThisCorrect ? 'correct' : 'incorrect');
+      statusEl.innerHTML = isThisCorrect 
+        ? '✓ ' + tr.rightAnswer
+        : '✗ ' + tr.notQuite;
+    }
+  });
+  
+  updateQuestionNav();
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= quizData.length) { showResults(); return; }
+  showQuestion(currentQ);
+}
+
+function prevQuestion() {
+  if (currentQ === 0) return;
+  currentQ--;
+  showQuestion(currentQ);
+}
+
+function showQuestion(index) {
+  document.querySelectorAll('.question').forEach((q, i) => q.classList.toggle('active', i === index));
+  updateProgress();
+  updatePictureVisibility();
+  updateQuestionNav();
+}
+
+function updatePictureVisibility() {
+  const contentRow = document.getElementById('content-row');
+  const activeQuestion = document.querySelector('.question.active');
+  
+  document.querySelectorAll('.picture-section').forEach(p => p.classList.add('hidden'));
+
+  if (!activeQuestion) {
+    if (contentRow) contentRow.classList.remove('show-picture');
+    return;
+  }
+
+  const showPicture = activeQuestion.dataset.includePicture === 'true';
+  const qIndex = activeQuestion.dataset.index;
+  
+  if (showPicture) {
+    const activePicture = document.getElementById('picture-section-' + qIndex);
+    if (activePicture) activePicture.classList.remove('hidden');
+  }
+  
+  if (contentRow) contentRow.classList.toggle('show-picture', showPicture);
+}
+
+function updateQuestionNav() {
+  const q = document.querySelector('.question.active');
+  if (!q) return;
+
+  const prevBtn = q.querySelector('.prev-btn');
+  const nextBtn = q.querySelector('.next-btn');
+  const hasAnswered = selectedAnswers[currentQ] !== null;
+
+  prevBtn.classList.toggle('hidden', currentQ === 0);
+  nextBtn.classList.toggle('hidden', !hasAnswered);
+  nextBtn.textContent = currentQ === quizData.length - 1 ? tr.seeResults : tr.next;
+}
+
+function updateProgress() {
+  document.querySelector('.progress-fill').style.width = (currentQ / quizData.length * 100) + '%';
+}
+
+function showResults() {
+  document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+  document.getElementById('results').classList.add('active');
+  const pct = Math.round((correctCount / quizData.length) * 100);
+  document.getElementById('score').textContent = pct + '%';
+  document.getElementById('score-text').textContent = tr.scoreText.replace('{correct}', correctCount).replace('{total}', quizData.length);
+  document.querySelector('.progress-fill').style.width = '100%';
+}
+
+function restart() {
+  currentQ = 0;
+  correctCount = 0;
+  selectedAnswers.fill(null);
+  document.getElementById('results').classList.remove('active');
+  document.querySelectorAll('.question').forEach((q, i) => {
+    q.classList.toggle('active', i === 0);
+    q.querySelectorAll('.option').forEach(o => o.classList.remove('selected', 'correct', 'incorrect', 'disabled', 'show-correct'));
+    q.querySelectorAll('.option-feedback').forEach(f => {
+      f.classList.add('hidden');
+      f.classList.remove('correct-feedback', 'incorrect-feedback');
+    });
+    const btn = q.querySelector('.next-btn');
+    btn.classList.add('hidden');
+    btn.textContent = tr.next;
+    const prevBtn = q.querySelector('.prev-btn');
+    prevBtn.classList.toggle('hidden', i === 0);
+  });
+  showQuestion(0);
+}
+
+init();
+</script>
+</body>
+</html>

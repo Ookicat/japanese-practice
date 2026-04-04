@@ -42,6 +42,12 @@ window.BOOKSHELF_MANIFEST = [
     "fileName": "unit-4-3.html"
   },
   {
+    "title": "Unit 5-1",
+    "path": "Grammar Unit 5/unit-5-1-interactive.html",
+    "group": "Grammar Unit 5",
+    "fileName": "unit-5-1-interactive.html"
+  },
+  {
     "title": "Listening Grammar 1",
     "path": "Listening Grammar/listening-grammar-1-interactive.html",
     "group": "Listening Grammar",

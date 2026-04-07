@@ -31,21 +31,21 @@ window.BOOKSHELF_MANIFEST = [
   },
   {
     "title": "Unit 4 - 1",
-    "path": "Grammar Unit 4/unit-4-1.html",
+    "path": "Grammar Unit 4/unit-4-1-interactive.html",
     "group": "Grammar Unit 4",
-    "fileName": "unit-4-1.html"
+    "fileName": "unit-4-1-interactive.html"
   },
   {
     "title": "Unit 4 - 2",
-    "path": "Grammar Unit 4/unit-4-2.html",
+    "path": "Grammar Unit 4/unit-4-2-interactive.html",
     "group": "Grammar Unit 4",
-    "fileName": "unit-4-2.html"
+    "fileName": "unit-4-2-interactive.html"
   },
   {
     "title": "Unit 4 - 3",
-    "path": "Grammar Unit 4/unit-4-3.html",
+    "path": "Grammar Unit 4/unit-4-3-interactive.html",
     "group": "Grammar Unit 4",
-    "fileName": "unit-4-3.html"
+    "fileName": "unit-4-3-interactive.html"
   },
   {
     "title": "Unit 5-1",

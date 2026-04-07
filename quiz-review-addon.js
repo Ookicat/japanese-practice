@@ -19,33 +19,38 @@
     return safeGet("tr") || {};
   }
 
-  function getChosenOption(questionIndex) {
+  function getQuestionElements() {
+    return Array.prototype.slice.call(document.querySelectorAll(".question"));
+  }
+
+  function getQuestionData(questionIndex) {
     var data = getQuizData();
-    var answers = getSelectedAnswers();
-    if (!Array.isArray(data) || !Array.isArray(answers)) return null;
+    if (!Array.isArray(data)) return null;
 
-    var label = answers[questionIndex];
-    if (!label) return null;
+    return data[questionIndex] || null;
+  }
 
-    var q = data[questionIndex];
-    if (!q || !Array.isArray(q.options)) return null;
+  function getOptionByLabel(question, label) {
+    if (!question || !Array.isArray(question.options) || !label) return null;
 
-    for (var i = 0; i < q.options.length; i++) {
-      if (q.options[i].label === label) return q.options[i];
+    for (var i = 0; i < question.options.length; i++) {
+      if (question.options[i].label === label) return question.options[i];
     }
 
     return null;
   }
 
+  function getChosenOption(questionIndex, label) {
+    var question = getQuestionData(questionIndex);
+    return getOptionByLabel(question, label);
+  }
+
   function getCorrectOption(questionIndex) {
-    var data = getQuizData();
-    if (!Array.isArray(data)) return null;
+    var question = getQuestionData(questionIndex);
+    if (!question || !Array.isArray(question.options)) return null;
 
-    var q = data[questionIndex];
-    if (!q || !Array.isArray(q.options)) return null;
-
-    for (var i = 0; i < q.options.length; i++) {
-      if (q.options[i].isCorrect) return q.options[i];
+    for (var i = 0; i < question.options.length; i++) {
+      if (question.options[i].isCorrect) return question.options[i];
     }
 
     return null;
@@ -83,8 +88,10 @@
 
   function renderReviewList(wrongOnly) {
     var data = getQuizData();
+    var answers = getSelectedAnswers();
     var trData = getTr();
-    if (!Array.isArray(data)) return null;
+    var questionElements = getQuestionElements();
+    if (!Array.isArray(data) || !Array.isArray(answers) || !questionElements.length) return null;
 
     var list = document.createElement("div");
     list.className = "review-list";
@@ -95,10 +102,15 @@
     var noAnswerLabel = trData.noAnswer || "Chưa trả lời";
     var visibleCount = 0;
 
-    for (var i = 0; i < data.length; i++) {
-      var q = data[i];
-      var chosen = getChosenOption(i);
-      var correct = getCorrectOption(i);
+    for (var i = 0; i < questionElements.length; i++) {
+      var questionEl = questionElements[i];
+      var questionIndex = parseInt(questionEl && questionEl.dataset ? questionEl.dataset.index : "", 10);
+      if (isNaN(questionIndex)) questionIndex = i;
+
+      var q = data[questionIndex];
+      var selectedLabel = answers[i];
+      var chosen = getChosenOption(questionIndex, selectedLabel);
+      var correct = getCorrectOption(questionIndex);
       var isCorrect = !!(chosen && correct && chosen.label === correct.label);
       if (wrongOnly && isCorrect) continue;
 
